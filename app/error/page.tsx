@@ -28,12 +28,13 @@ const errorMessages: Record<string, { title: string; description: string; action
     },
 };
 
-export default function ErrorPage({
+export default async function ErrorPage({
     searchParams,
 }: {
-    searchParams: { message?: string };
+    searchParams: Promise<{ message?: string }>;
 }) {
-    const errorKey = searchParams.message || 'auth_failed';
+    const params = await searchParams;
+    const errorKey = params.message || 'auth_failed';
     const error = errorMessages[errorKey] || {
         title: '未知错误',
         description: errorKey,
