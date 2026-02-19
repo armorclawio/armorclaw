@@ -1,0 +1,17 @@
+# 本地开发环境变量模板
+# 复制此文件为 .dev.vars 并填入真实值
+# .dev.vars 已在 .gitignore 中，不会被提交
+
+# GitHub OAuth 配置（开发环境）
+GITHUB_CLIENT_ID=your_github_client_id_here
+GITHUB_CLIENT_SECRET=your_github_client_secret_here
+
+# Session 密钥（随机生成32位字符串）
+# 可以使用以下命令生成（PowerShell）：
+# -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 32 | % {[char]$_})
+SESSION_SECRET=your_random_32_character_secret_here
+
+# 智谱 AI API Key（用于 eBPF 文件分析）
+# 在 https://open.bigmodel.cn/ 获取
+GLM_API_KEY=your_glm_api_key_here
+

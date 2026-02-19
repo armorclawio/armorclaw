@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================
+   Theme Variables - Light & Dark Mode
+   ============================================ */
+
+:root {
+  /* Base Colors */
+  --bg: #fdfbf7;
+  --fg: #1c1917;
+  --surface: #f5f2e9;
+  --border: #e7e2d3;
+
+  /* Text Colors */
+  --text: #1c1917;
+  --text-muted: #78716c;
+
+  /* Accent & Status Colors */
+  --accent: #d97706;
+  --success: #16a34a;
+  --warning: #eab308;
+  --error: #dc2626;
+
+  /* Gradients - Light Mode: Warm Yellow/Orange */
+  --gradient-primary: linear-gradient(to bottom right, #fbbf24, #f59e0b, #d97706);
+
+  /* Effects */
+  --glow-opacity: 0.15;
+  --glass-opacity: 0.2;
+}
+
+/* Dark Mode - Higher specificity to ensure override */
+html.dark {
+  /* Base Colors */
+  --bg: #020617;
+  --fg: #f8fafc;
+  --surface: #0f172a;
+  --border: #1e293b;
+
+  /* Text Colors */
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+
+  /* Accent & Status Colors */
+  --accent: #3b82f6;
+  --success: #22c55e;
+  --warning: #facc15;
+  --error: #ef4444;
+
+  /* Gradients - Dark Mode: Cool Blue/Purple/Pink */
+  --gradient-primary: linear-gradient(135deg, #7c3aed, #c026d3, #db2777);
+
+  /* Effects */
+  --glow-opacity: 0.8;
+  --glass-opacity: 0.4;
+}
+
+/* ============================================
+   Tailwind Theme Integration
+   ============================================ */
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-surface: var(--surface);
+  --color-line: var(--border);
+  --color-ink: var(--text);
+  --color-ink-soft: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  overflow: hidden;
+}
+
+/* ============================================
+   Visual Effects
+   ============================================ */
+
+/* Breathing Glow Effect */
+@keyframes breathe {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: calc(var(--glow-opacity) * 0.7);
+    filter: blur(8px);
+  }
+
+  50% {
+    transform: scale(1.02);
+    opacity: var(--glow-opacity);
+    filter: blur(4px);
+  }
+}
+
+.glow {
+  position: relative;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: var(--gradient-primary);
+  border-radius: inherit;
+  z-index: -1;
+  animation: breathe 4s ease-in-out infinite;
+}
+
+html.dark .glow::before {
+  inset: -2px;
+}
+
+/* Glassmorphism Effect */
+.glass {
+  background: color-mix(in srgb, var(--bg), transparent calc(var(--glass-opacity) * 100));
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+}
+
+.glass:not(html.dark *) {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   Interactive Elements
+   ============================================ */
+
+/* Sidebar Item Hover */
+.sidebar-item {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-item:hover {
+  background: color-mix(in srgb, var(--text), transparent 95%);
+  transform: translateX(4px);
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}

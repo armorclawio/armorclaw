@@ -1,0 +1,69 @@
+'use client';
+
+import { useState } from 'react';
+import { Suspense } from 'react';
+import { ShieldCheck } from "lucide-react";
+import { AnalysisResultView } from "@/components/AnalysisResultView";
+import { ChatBox } from "@/components/ChatBox";
+import { useTranslation } from "@/components/LanguageProvider";
+
+export default function Home() {
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [currentAuditId, setCurrentAuditId] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { t } = useTranslation();
+
+  const handleAnalysisReady = (auditId: string) => {
+    setCurrentAuditId(auditId);
+    setShowAnalysis(true);
+    setSelectedFile(null); // 清除已选择的文件
+  };
+
+  const handleFileSelect = (file: File | null) => {
+    setSelectedFile(file);
+  };
+
+  return (
+    <div className="h-full w-full flex flex-col items-center justify-center p-8 relative overflow-hidden overflow-y-auto">
+      {/* Background Glows - 亮色模式：暖色调，暗色模式：冷色调 */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-400/20 dark:bg-purple-600/20 rounded-full blur-[128px] animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-500/20 dark:bg-violet-600/20 rounded-full blur-[128px] animate-pulse" />
+
+      <div className="max-w-2xl w-full space-y-12 text-center z-10 py-8">
+        {/* AI Chat Box with integrated file upload */}
+        {/* AI Chat Box with integrated file upload */}
+        <Suspense fallback={<div className="h-[600px] w-full bg-surface rounded-2xl animate-pulse" />}>
+          <ChatBox
+            selectedFile={selectedFile}
+            onFileSelect={handleFileSelect}
+            onAnalysisReady={handleAnalysisReady}
+          />
+        </Suspense>
+
+        <div className="mt-4 flex items-center justify-center gap-6 text-xs font-semibold text-ink-soft/30 uppercase tracking-[0.2em]">
+          <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> {t.common.staticAnalysis}</span>
+          <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> {t.common.runtimeAudit}</span>
+          <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> {t.common.scoreGeneration}</span>
+        </div>
+
+        {/* Analysis Result Section */}
+        {showAnalysis && currentAuditId && (
+          <div className="space-y-4 mt-8">
+            <div className="bg-surface border border-line rounded-2xl p-6">
+              <AnalysisResultView
+                auditId={currentAuditId}
+                onClose={() => setShowAnalysis(false)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer Branding */}
+      <div className="absolute bottom-8 text-ink-soft/20 text-xs font-medium tracking-widest flex items-center gap-2">
+        {t.common.poweredBy}
+      </div>
+    </div>
+  );
+}
+

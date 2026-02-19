@@ -1,0 +1,14 @@
+name = "armorclaw"
+pages_build_output_dir = ".next"
+compatibility_date = "2024-05-02"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "armorclaw-db"
+database_id = "f93c6a62-9f9e-49c9-8b6a-e5a7f24dfc8a"
+
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "armorclaw-files"
+
