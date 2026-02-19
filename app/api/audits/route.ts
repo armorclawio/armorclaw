@@ -1,5 +1,6 @@
 export const runtime = 'edge';
 import { getCurrentUser } from '@/lib/auth';
+import { getCloudflareContext } from '@/lib/cloudflare';
 
 export async function GET(request: Request) {
     // 获取当前用户
@@ -11,8 +12,7 @@ export async function GET(request: Request) {
 
     try {
         // 获取 D1 数据库
-        const { getRequestContext } = await import('@cloudflare/next-on-pages');
-        const ctx = getRequestContext();
+        const ctx = await getCloudflareContext();
         const db = ctx.env.DB as any;
 
         if (!db) {

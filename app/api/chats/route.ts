@@ -1,4 +1,5 @@
 import { getCurrentUser } from '@/lib/auth';
+import { getCloudflareContext } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
 
@@ -10,8 +11,7 @@ export async function GET(request: Request) {
     }
 
     try {
-        const { getRequestContext } = await import('@cloudflare/next-on-pages');
-        const ctx = getRequestContext();
+        const ctx = await getCloudflareContext();
         const db = ctx.env.DB as any;
 
         if (!db) {
@@ -49,8 +49,7 @@ export async function POST(request: Request) {
         const { title } = body;
         const chatId = crypto.randomUUID();
 
-        const { getRequestContext } = await import('@cloudflare/next-on-pages');
-        const ctx = getRequestContext();
+        const ctx = await getCloudflareContext();
         const db = ctx.env.DB as any;
 
         if (!db) {
