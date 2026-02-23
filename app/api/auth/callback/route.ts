@@ -1,6 +1,4 @@
 
-import { getCloudflareContext } from '@/lib/cloudflare';
-
 interface GitHubUser {
     id: number;
     login: string;
@@ -47,13 +45,10 @@ export async function GET(request: Request) {
         return Response.redirect(`${url.origin}/error?message=invalid_state`, 302);
     }
 
-    // 通过 Cloudflare context 获取 Secrets（在 Workers 环境中 secrets 无法通过 process.env 读取）
-    const ctx = getCloudflareContext();
-    const env = ctx.env as any;
-
-    const clientId = env.GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
-    const clientSecret = env.GITHUB_CLIENT_SECRET || process.env.GITHUB_CLIENT_SECRET;
-    const sessionSecret = env.SESSION_SECRET || process.env.SESSION_SECRET;
+    // 在 @opennextjs/cloudflare 环境中，process.env 可读取所有 vars 和 secrets
+    const clientId = process.env.GITHUB_CLIENT_ID;
+    const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+    const sessionSecret = process.env.SESSION_SECRET;
 
     if (!clientId || !clientSecret) {
         return Response.redirect(`${url.origin}/error?message=oauth_not_configured`, 302);
@@ -106,20 +101,20 @@ export async function GET(request: Request) {
             email = primaryEmail?.email || null;
         }
 
-        // 4. 存入 D1 数据库（通过 Cloudflare binding）
+        // 4. 存入 D1 数据库（通过 getCloudflareContext，仅在运行时调用，不在模块顶层导入）
         try {
-            const db = env.DB;
+            const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+            const ctx = getCloudflareContext();
+            const db = (ctx.env as any).DB;
 
             if (db) {
                 const userId = crypto.randomUUID();
 
-                // 先检查用户是否已存在
                 const existingUser = await db.prepare(
                     'SELECT id FROM users WHERE github_id = ?'
                 ).bind(userData.id.toString()).first();
 
                 if (existingUser) {
-                    // 更新现有用户
                     await db.prepare(`
                         UPDATE users 
                         SET email = ?, name = ?, image = ?
@@ -131,7 +126,6 @@ export async function GET(request: Request) {
                         userData.id.toString()
                     ).run();
                 } else {
-                    // 插入新用户
                     await db.prepare(`
                         INSERT INTO users (id, github_id, email, name, image, created_at)
                         VALUES (?, ?, ?, ?, ?, datetime('now'))
@@ -157,7 +151,6 @@ export async function GET(request: Request) {
             image: userData.avatar_url,
         };
 
-        // 使用 jose 创建 JWT
         const { SignJWT } = await import('jose');
         const secret = new TextEncoder().encode(sessionSecret || 'default-secret-change-me');
 
@@ -169,10 +162,7 @@ export async function GET(request: Request) {
         // 6. 设置 Cookie 并重定向
         const response = Response.redirect(`${url.origin}?login=success`, 302);
 
-        // 设置 session cookie
         const sessionCookie = `session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
-
-        // 清除 oauth_state cookie
         const clearStateCookie = 'oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0';
 
         response.headers.append('Set-Cookie', sessionCookie);

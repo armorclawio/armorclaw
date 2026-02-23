@@ -1,12 +1,9 @@
 
-import { getCloudflareContext } from '@/lib/cloudflare';
-
 export async function GET(request: Request) {
     const url = new URL(request.url);
 
-    // 通过 Cloudflare context 获取环境变量（Secrets 必须通过此方式读取）
-    const ctx = getCloudflareContext();
-    const clientId = (ctx.env as any).GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
+    // 在 @opennextjs/cloudflare 中，process.env 可读取 Cloudflare vars 和 secrets
+    const clientId = process.env.GITHUB_CLIENT_ID;
 
     if (!clientId) {
         return Response.redirect(`${url.origin}/error?message=oauth_not_configured`, 302);
