@@ -1,7 +1,6 @@
 
-import { getCloudflareContext } from '@/lib/cloudflare';
 
-export const runtime = 'edge';
+import { getCloudflareContext } from '@/lib/cloudflare';
 
 interface GitHubUser {
     id: number;
@@ -49,10 +48,8 @@ export async function GET(request: Request) {
         return Response.redirect(`${url.origin}/error?message=invalid_state`, 302);
     }
 
-    const { env } = getCloudflareContext();
-    const clientId = env.GITHUB_CLIENT_ID || (globalThis as any).process?.env?.GITHUB_CLIENT_ID;
-    const clientSecret = env.GITHUB_CLIENT_SECRET || (globalThis as any).process?.env?.GITHUB_CLIENT_SECRET;
-    const sessionSecret = env.SESSION_SECRET || (globalThis as any).process?.env?.SESSION_SECRET;
+    const clientId = process.env.GITHUB_CLIENT_ID;
+    const clientSecret = process.env.GITHUB_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
         return Response.redirect(`${url.origin}/error?message=oauth_not_configured`, 302);
@@ -86,7 +83,6 @@ export async function GET(request: Request) {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
                 'Accept': 'application/json',
-                'User-Agent': 'ArmorClaw-App'
             },
         });
 
@@ -99,7 +95,6 @@ export async function GET(request: Request) {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
                     'Accept': 'application/json',
-                    'User-Agent': 'ArmorClaw-App'
                 },
             });
             const emails = await emailResponse.json() as GitHubEmail[];
@@ -107,9 +102,11 @@ export async function GET(request: Request) {
             email = primaryEmail?.email || null;
         }
 
-        // 4. 存入 D1 数据库
+        // 4. 存入 D1 数据库（需要通过 Cloudflare binding）
+        // 注意：在 Edge Runtime 中，需要通过 getRequestContext 访问 env
         try {
-            const db = env.DB as any;
+            const ctx = await getCloudflareContext();
+            const db = ctx.env.DB as any;
 
             if (db) {
                 const userId = crypto.randomUUID();
@@ -147,9 +144,10 @@ export async function GET(request: Request) {
             }
         } catch (dbError) {
             console.error('Database error:', dbError);
+            // 即使数据库失败，也继续登录流程
         }
 
-        // 5. 创建 Session
+        // 5. 创建 Session（简化版：使用 JWT Cookie）
         const sessionData = {
             userId: userData.id.toString(),
             name: userData.name,
@@ -157,8 +155,9 @@ export async function GET(request: Request) {
             image: userData.avatar_url,
         };
 
+        // 使用 jose 创建 JWT
         const { SignJWT } = await import('jose');
-        const secret = new TextEncoder().encode(sessionSecret || 'default-secret-change-me');
+        const secret = new TextEncoder().encode(process.env.SESSION_SECRET || 'default-secret-change-me');
 
         const token = await new SignJWT(sessionData)
             .setProtectedHeader({ alg: 'HS256' })
@@ -168,11 +167,14 @@ export async function GET(request: Request) {
         // 6. 设置 Cookie 并重定向
         const response = Response.redirect(`${url.origin}?login=success`, 302);
 
-        const isProduction = (env.NODE_ENV || (globalThis as any).process?.env?.NODE_ENV) === 'production';
-        const cookieFlags = `Path=/; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
+        // 设置 session cookie
+        const sessionCookie = `session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
 
-        response.headers.append('Set-Cookie', `session=${token}; ${cookieFlags}`);
-        response.headers.append('Set-Cookie', `oauth_state=; Path=/; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Lax; Max-Age=0`);
+        // 清除 oauth_state cookie
+        const clearStateCookie = 'oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0';
+
+        response.headers.append('Set-Cookie', sessionCookie);
+        response.headers.append('Set-Cookie', clearStateCookie);
 
         return response;
 
