@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { getCurrentUser } from '@/lib/auth';
 import { getCloudflareContext } from '@/lib/cloudflare';
 

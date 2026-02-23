@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { getCurrentUser } from '@/lib/auth';
 import { analyzeEBPFFile, type ProjectFile } from '@/lib/ai-service';
 import { getCloudflareContext } from '@/lib/cloudflare';

@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
 
 const errorMessages: Record<string, { title: string; description: string; action?: string }> = {

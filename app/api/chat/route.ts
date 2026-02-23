@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { chatWithAI } from '@/lib/ai-service';
 import { getCurrentUser } from '@/lib/auth';
 import { getCloudflareContext } from '@/lib/cloudflare';
