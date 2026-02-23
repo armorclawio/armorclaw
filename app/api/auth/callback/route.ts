@@ -1,6 +1,7 @@
 
-
 import { getCloudflareContext } from '@/lib/cloudflare';
+
+export const runtime = 'edge';
 
 interface GitHubUser {
     id: number;
@@ -48,8 +49,13 @@ export async function GET(request: Request) {
         return Response.redirect(`${url.origin}/error?message=invalid_state`, 302);
     }
 
-    const clientId = process.env.GITHUB_CLIENT_ID;
-    const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+    // 通过 Cloudflare context 获取 Secrets（在 Workers 环境中 secrets 无法通过 process.env 读取）
+    const ctx = getCloudflareContext();
+    const env = ctx.env as any;
+
+    const clientId = env.GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
+    const clientSecret = env.GITHUB_CLIENT_SECRET || process.env.GITHUB_CLIENT_SECRET;
+    const sessionSecret = env.SESSION_SECRET || process.env.SESSION_SECRET;
 
     if (!clientId || !clientSecret) {
         return Response.redirect(`${url.origin}/error?message=oauth_not_configured`, 302);
@@ -102,11 +108,9 @@ export async function GET(request: Request) {
             email = primaryEmail?.email || null;
         }
 
-        // 4. 存入 D1 数据库（需要通过 Cloudflare binding）
-        // 注意：在 Edge Runtime 中，需要通过 getRequestContext 访问 env
+        // 4. 存入 D1 数据库（通过 Cloudflare binding）
         try {
-            const ctx = await getCloudflareContext();
-            const db = ctx.env.DB as any;
+            const db = env.DB;
 
             if (db) {
                 const userId = crypto.randomUUID();
@@ -147,7 +151,7 @@ export async function GET(request: Request) {
             // 即使数据库失败，也继续登录流程
         }
 
-        // 5. 创建 Session（简化版：使用 JWT Cookie）
+        // 5. 创建 Session（使用 JWT Cookie）
         const sessionData = {
             userId: userData.id.toString(),
             name: userData.name,
@@ -157,7 +161,7 @@ export async function GET(request: Request) {
 
         // 使用 jose 创建 JWT
         const { SignJWT } = await import('jose');
-        const secret = new TextEncoder().encode(process.env.SESSION_SECRET || 'default-secret-change-me');
+        const secret = new TextEncoder().encode(sessionSecret || 'default-secret-change-me');
 
         const token = await new SignJWT(sessionData)
             .setProtectedHeader({ alg: 'HS256' })
