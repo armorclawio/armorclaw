@@ -5,6 +5,7 @@ import { ChatHistoryList } from "./ChatHistoryList";
 import { AuditHistory } from "./AuditHistory";
 import { SessionUser } from "@/types";
 import { useTranslation } from "./LanguageProvider";
+import { useSidebar } from "./SidebarProvider";
 
 interface SidebarProps {
     user: SessionUser | null;
@@ -12,35 +13,44 @@ interface SidebarProps {
 
 export function Sidebar({ user }: SidebarProps) {
     const { t } = useTranslation();
+    const { isOpen, setIsOpen } = useSidebar();
 
     return (
-        <aside className="w-64 border-r border-line flex flex-col glass z-10 h-full">
-            <div className="p-6 flex items-center gap-3 border-b border-line shrink-0">
-                <Shield className="text-accent w-8 h-8" />
-                <span className="font-bold text-xl tracking-tight text-ink">ArmorClaw</span>
-            </div>
+        <>
+            {isOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity duration-200"
+                    onClick={() => setIsOpen(false)}
+                />
+            )}
+            <aside className={`fixed md:relative inset-y-0 left-0 transform ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 transition-transform duration-200 ease-in-out w-64 border-r border-line flex flex-col glass z-50 md:z-10 h-full bg-background/95 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none`}>
+                <div className="p-6 flex items-center gap-3 border-b border-line shrink-0">
+                    <Shield className="text-accent w-8 h-8" />
+                    <span className="font-bold text-xl tracking-tight text-ink">ArmorClaw</span>
+                </div>
 
-            <nav className="flex-1 overflow-y-auto p-4 space-y-6">
-                <div>
-                    <div className="text-xs font-semibold text-ink-soft uppercase tracking-wider mb-2 px-2 flex items-center gap-2">
-                        <History className="w-3 h-3" />
-                        {t.sidebar.conversations}
+                <nav className="flex-1 overflow-y-auto p-4 space-y-6">
+                    <div>
+                        <div className="text-xs font-semibold text-ink-soft uppercase tracking-wider mb-2 px-2 flex items-center gap-2">
+                            <History className="w-3 h-3" />
+                            {t.sidebar.conversations}
+                        </div>
+                        <ChatHistoryList user={user} />
                     </div>
-                    <ChatHistoryList user={user} />
-                </div>
 
-                <div>
-                    <div className="text-xs font-semibold text-ink-soft uppercase tracking-wider mb-2 px-2">{t.sidebar.auditLogs}</div>
-                    <AuditHistory />
-                </div>
-            </nav>
+                    <div>
+                        <div className="text-xs font-semibold text-ink-soft uppercase tracking-wider mb-2 px-2">{t.sidebar.auditLogs}</div>
+                        <AuditHistory />
+                    </div>
+                </nav>
 
-            <div className="p-4 border-t border-line space-y-2 shrink-0">
-                <div className="sidebar-item p-3 rounded-xl cursor-pointer flex items-center gap-3 text-ink-soft hover:text-ink transition-colors">
-                    <Settings className="w-4 h-4" />
-                    <span className="text-sm font-medium">{t.common.settings}</span>
+                <div className="p-4 border-t border-line space-y-2 shrink-0">
+                    <div className="sidebar-item p-3 rounded-xl cursor-pointer flex items-center gap-3 text-ink-soft hover:text-ink transition-colors">
+                        <Settings className="w-4 h-4" />
+                        <span className="text-sm font-medium">{t.common.settings}</span>
+                    </div>
                 </div>
-            </div>
-        </aside>
+            </aside>
+        </>
     );
 }

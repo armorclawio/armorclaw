@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { LanguageProvider } from "@/components/LanguageProvider";
+import { SidebarProvider } from "@/components/SidebarProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,19 +45,21 @@ export default async function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              {/* Sidebar */}
-              <Sidebar user={user} />
+              <SidebarProvider>
+                {/* Sidebar */}
+                <Sidebar user={user} />
 
-              {/* Main Content Area */}
-              <div className="flex-1 flex flex-col relative">
-                {/* Top Navigation */}
-                <Header user={user} />
+                {/* Main Content Area */}
+                <div className="flex-1 flex flex-col relative w-full overflow-hidden">
+                  {/* Top Navigation */}
+                  <Header user={user} />
 
-                <main className="flex-1 mt-16 overflow-hidden relative">
-                  <LoginSuccessToast />
-                  {children}
-                </main>
-              </div>
+                  <main className="flex-1 mt-16 overflow-hidden relative">
+                    <LoginSuccessToast />
+                    {children}
+                  </main>
+                </div>
+              </SidebarProvider>
             </ThemeProvider>
           </LanguageProvider>
         </UserProvider>

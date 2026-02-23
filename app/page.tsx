@@ -24,12 +24,12 @@ export default function Home() {
   };
 
   return (
-    <div className="h-full w-full flex flex-col items-center justify-center p-8 relative overflow-hidden overflow-y-auto">
+    <div className="h-full w-full flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden overflow-y-auto">
       {/* Background Glows - 亮色模式：暖色调，暗色模式：冷色调 */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-400/20 dark:bg-purple-600/20 rounded-full blur-[128px] animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-500/20 dark:bg-violet-600/20 rounded-full blur-[128px] animate-pulse" />
+      <div className="absolute top-1/4 left-1/4 w-72 md:w-96 h-72 md:h-96 bg-amber-400/20 dark:bg-purple-600/20 rounded-full blur-[128px] animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-72 md:w-96 h-72 md:h-96 bg-orange-500/20 dark:bg-violet-600/20 rounded-full blur-[128px] animate-pulse" />
 
-      <div className="max-w-2xl w-full space-y-12 text-center z-10 py-8">
+      <div className="max-w-2xl w-full space-y-8 md:space-y-12 text-center z-10 py-4 md:py-8">
         {/* AI Chat Box with integrated file upload */}
         {/* AI Chat Box with integrated file upload */}
         <Suspense fallback={<div className="h-[600px] w-full bg-surface rounded-2xl animate-pulse" />}>
@@ -40,7 +40,7 @@ export default function Home() {
           />
         </Suspense>
 
-        <div className="mt-4 flex items-center justify-center gap-6 text-xs font-semibold text-ink-soft/30 uppercase tracking-[0.2em]">
+        <div className="mt-4 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 text-xs font-semibold text-ink-soft/30 uppercase tracking-[0.2em]">
           <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> {t.common.staticAnalysis}</span>
           <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> {t.common.runtimeAudit}</span>
           <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> {t.common.scoreGeneration}</span>
