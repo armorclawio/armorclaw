@@ -18,19 +18,24 @@ export async function GET(request: Request) {
             return Response.json({ error: 'Database not available' }, { status: 500 });
         }
 
+        const dbUser = await db.prepare('SELECT id FROM users WHERE github_id = ?').bind(user.userId).first() as any;
+        if (!dbUser) {
+            return Response.json({ audits: [], count: 0 });
+        }
+
         // 查询用户的审计历史
         const result = await db.prepare(`
-      SELECT 
-        id,
-        skill_name,
-        status,
-        score,
-        created_at
-      FROM audits
-      WHERE user_id = (SELECT id FROM users WHERE github_id = ?)
-      ORDER BY created_at DESC
-      LIMIT 50
-    `).bind(user.userId).all();
+          SELECT 
+            id,
+            skill_name,
+            status,
+            score,
+            created_at
+          FROM audits
+          WHERE user_id = ?
+          ORDER BY created_at DESC
+          LIMIT 50
+        `).bind(dbUser.id).all();
 
         return Response.json({
             audits: result.results || [],

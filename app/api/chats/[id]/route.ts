@@ -18,8 +18,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             return Response.json({ error: 'Database not available' }, { status: 500 });
         }
 
+        const dbUser = await db.prepare('SELECT id FROM users WHERE github_id = ?').bind(user.userId).first() as any;
+        if (!dbUser) {
+            return Response.json({ error: 'User not found' }, { status: 404 });
+        }
+
         // Verify ownership
-        const chat = await db.prepare(`SELECT * FROM chats WHERE id = ? AND user_id = ?`).bind(chatId, user.userId).first();
+        const chat = await db.prepare(`SELECT * FROM chats WHERE id = ? AND user_id = ?`).bind(chatId, dbUser.id).first();
 
         if (!chat) {
             return Response.json({ error: 'Chat not found' }, { status: 404 });
@@ -59,9 +64,14 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
             return Response.json({ error: 'Database not available' }, { status: 500 });
         }
 
+        const dbUser = await db.prepare('SELECT id FROM users WHERE github_id = ?').bind(user.userId).first() as any;
+        if (!dbUser) {
+            return Response.json({ error: 'User not found' }, { status: 404 });
+        }
+
         const result = await db.prepare(`
             DELETE FROM chats WHERE id = ? AND user_id = ?
-        `).bind(chatId, user.userId).run();
+        `).bind(chatId, dbUser.id).run();
 
         if (result.meta?.changes === 0) {
             return Response.json({ error: 'Chat not found or deletion failed' }, { status: 404 });

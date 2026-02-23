@@ -75,10 +75,15 @@ export async function POST(request: Request) {
                         // 提取标题（使用消息的前 30 个字符）
                         const title = message.slice(0, 30) + (message.length > 30 ? '...' : '');
 
+                        const dbUser = await db.prepare('SELECT id FROM users WHERE github_id = ?').bind(user.userId).first() as any;
+                        if (!dbUser) {
+                            throw new Error('User not found in database');
+                        }
+
                         await db.prepare(`
                             INSERT INTO chats (id, user_id, title)
                             VALUES (?, ?, ?)
-                        `).bind(chatId, user.userId, title).run();
+                        `).bind(chatId, dbUser.id, title).run();
                     }
 
                     // 保存用户消息

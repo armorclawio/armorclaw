@@ -17,13 +17,18 @@ export async function GET(request: Request) {
             return Response.json({ error: 'Database not available' }, { status: 500 });
         }
 
+        const dbUser = await db.prepare('SELECT id FROM users WHERE github_id = ?').bind(user.userId).first() as any;
+        if (!dbUser) {
+            return Response.json({ chats: [], count: 0 });
+        }
+
         const result = await db.prepare(`
             SELECT id, title, created_at
             FROM chats
             WHERE user_id = ?
             ORDER BY created_at DESC
             LIMIT 50
-        `).bind(user.userId).all();
+        `).bind(dbUser.id).all();
 
         return Response.json({
             chats: result.results || [],
@@ -55,10 +60,15 @@ export async function POST(request: Request) {
             return Response.json({ error: 'Database not available' }, { status: 500 });
         }
 
+        const dbUser = await db.prepare('SELECT id FROM users WHERE github_id = ?').bind(user.userId).first() as any;
+        if (!dbUser) {
+            return Response.json({ error: 'User not found in database' }, { status: 400 });
+        }
+
         await db.prepare(`
             INSERT INTO chats (id, user_id, title)
             VALUES (?, ?, ?)
-        `).bind(chatId, user.userId, title || 'New Chat').run();
+        `).bind(chatId, dbUser.id, title || 'New Chat').run();
 
         return Response.json({
             id: chatId,
