@@ -86,7 +86,7 @@ declare global {
 }
 
 // Extend CloudflareEnv to include our D1 database and R2 storage
-declare module '@cloudflare/next-on-pages' {
+declare module '@opennextjs/cloudflare' {
     interface CloudflareEnv {
         DB: D1Database;
         STORAGE: R2Bucket;

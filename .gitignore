@@ -37,6 +37,7 @@ yarn-error.log*
 .dev.vars
 .wrangler/
 wrangler.toml.backup
+.open-next/
 
 # vercel
 .vercel
