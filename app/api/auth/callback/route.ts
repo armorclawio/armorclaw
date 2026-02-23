@@ -1,8 +1,6 @@
 
 import { getCloudflareContext } from '@/lib/cloudflare';
 
-export const runtime = 'edge';
-
 interface GitHubUser {
     id: number;
     login: string;
