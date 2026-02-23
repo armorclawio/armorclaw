@@ -60,6 +60,7 @@ export async function GET(request: Request) {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
+                'User-Agent': 'ArmorClaw-App'
             },
             body: JSON.stringify({
                 client_id: clientId,
@@ -81,6 +82,7 @@ export async function GET(request: Request) {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
                 'Accept': 'application/json',
+                'User-Agent': 'ArmorClaw-App'
             },
         });
 
@@ -93,6 +95,7 @@ export async function GET(request: Request) {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
                     'Accept': 'application/json',
+                    'User-Agent': 'ArmorClaw-App'
                 },
             });
             const emails = await emailResponse.json() as GitHubEmail[];
