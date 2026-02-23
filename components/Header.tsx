@@ -60,6 +60,7 @@ export function Header({ user }: HeaderProps) {
                 ) : (
                     <LoginButton />
                 )}
+            </div>
         </header>
     );
 }
