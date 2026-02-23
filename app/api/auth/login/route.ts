@@ -1,4 +1,3 @@
-
 export async function GET(request: Request) {
     const url = new URL(request.url);
 
@@ -19,13 +18,13 @@ export async function GET(request: Request) {
     githubAuthUrl.searchParams.set('scope', 'read:user user:email');
     githubAuthUrl.searchParams.set('state', state);
 
-    // 将 state 存储在 cookie 中用于验证
-    const response = Response.redirect(githubAuthUrl.toString(), 302);
-
-    response.headers.set(
-        'Set-Cookie',
-        `oauth_state=${state}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`
-    );
-
-    return response;
+    // ⚠️ 重要：Cloudflare Workers 中 Response.redirect() 返回的对象是不可变的，
+    // 无法通过 headers.set() 追加 Cookie。必须使用 new Response() 手动构造重定向。
+    return new Response(null, {
+        status: 302,
+        headers: {
+            'Location': githubAuthUrl.toString(),
+            'Set-Cookie': `oauth_state=${state}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`,
+        },
+    });
 }

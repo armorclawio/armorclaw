@@ -1,4 +1,3 @@
-
 interface GitHubUser {
     id: number;
     login: string;
@@ -159,16 +158,19 @@ export async function GET(request: Request) {
             .setExpirationTime('7d')
             .sign(secret);
 
-        // 6. 设置 Cookie 并重定向
-        const response = Response.redirect(`${url.origin}?login=success`, 302);
-
+        // 6. ⚠️ 重要：Cloudflare Workers 中 Response.redirect() 返回的对象是不可变的，
+        // 无法通过 headers.append() 追加 Cookie。必须使用 new Response() 手动构造重定向。
         const sessionCookie = `session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
         const clearStateCookie = 'oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0';
 
-        response.headers.append('Set-Cookie', sessionCookie);
-        response.headers.append('Set-Cookie', clearStateCookie);
-
-        return response;
+        return new Response(null, {
+            status: 302,
+            headers: new Headers([
+                ['Location', `${url.origin}?login=success`],
+                ['Set-Cookie', sessionCookie],
+                ['Set-Cookie', clearStateCookie],
+            ]),
+        });
 
     } catch (error) {
         console.error('OAuth callback error:', error);

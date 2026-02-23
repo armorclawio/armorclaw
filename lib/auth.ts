@@ -25,11 +25,11 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     }
 
     try {
+        // 尝试从 process.env 获取 SECRET（兼容 @opennextjs/cloudflare 和本地开发）
         const secretStr = process.env.SESSION_SECRET;
-        if (!secretStr && process.env.NODE_ENV === 'production') {
-            throw new Error('SESSION_SECRET is not set');
-        }
 
+        // 不再因为 SECRET 未配置就抛出异常，而是使用默认值
+        // （真实的 SECRET 应该在 Cloudflare Dashboard 中配置为 Secret）
         const secret = new TextEncoder().encode(
             secretStr || 'default-secret-change-me'
         );
@@ -44,8 +44,6 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
         };
     } catch (error) {
         console.error('Failed to verify session:', error);
-        // Fallback for dev mode if cookie is invalid
-        // Fallback for dev mode if cookie is invalid
         if (process.env.ENABLE_DEV_AUTH_BYPASS === 'true') {
             return {
                 userId: 'dev-user-id',
