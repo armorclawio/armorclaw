@@ -15,7 +15,7 @@ function renderInline(text: string): React.ReactNode[] {
             return (
                 <code
                     key={i}
-                    className="bg-black/5 dark:bg-white/5 text-accent px-1.5 py-0.5 rounded text-[0.85em] font-mono border border-black/5 dark:border-white/5"
+                    className="bg-black/5 dark:bg-white/10 text-accent px-1.5 py-0.5 rounded text-[0.85em] font-mono border border-black/5 dark:border-white/5"
                 >
                     {token.slice(1, -1)}
                 </code>
@@ -58,7 +58,7 @@ function parseMarkdown(content: string): React.ReactNode[] {
             nodes.push(
                 <pre
                     key={nodes.length}
-                    className="bg-black/[0.03] dark:bg-white/[0.03] backdrop-blur-[2px] text-[0.82rem] md:text-sm p-4 rounded-xl overflow-x-auto my-3 border border-black/5 dark:border-white/10 font-mono leading-relaxed"
+                    className="bg-black/[0.01] dark:bg-white/[0.02] backdrop-blur-[4px] text-[0.82rem] md:text-sm p-4 rounded-xl overflow-x-auto my-3 border border-black/5 dark:border-white/10 font-mono leading-relaxed"
                 >
                     {lang && (
                         <div className="text-ink-soft text-[10px] uppercase tracking-widest mb-2 pb-2 border-b border-white/10 select-none">

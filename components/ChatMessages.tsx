@@ -40,7 +40,7 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
                     <div
                         className={`max-w-[85%] md:max-w-[75%] rounded-2xl px-5 py-3.5 shadow-sm transition-all ${msg.role === 'user'
                             ? 'bg-accent text-white rounded-br-none'
-                            : 'bg-surface text-ink border border-line rounded-bl-none'
+                            : 'glass bg-white/40 dark:bg-white/5 text-ink border border-white/20 dark:border-white/10 rounded-bl-none'
                             }`}
                     >
                         {msg.role === 'assistant' && (
