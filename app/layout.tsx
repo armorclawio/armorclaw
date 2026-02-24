@@ -50,7 +50,7 @@ export default async function RootLayout({
                 <Sidebar user={user} />
 
                 {/* Main Content Area */}
-                <div className="flex-1 flex flex-col relative w-full overflow-hidden">
+                <div className="flex-1 flex flex-col relative w-full min-h-0">
                   {/* Top Navigation */}
                   <Header user={user} />
 

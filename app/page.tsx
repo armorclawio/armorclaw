@@ -24,16 +24,17 @@ export default function Home() {
   };
 
   return (
-    <div className="h-full w-full flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden overflow-y-auto">
-      {/* Background Glows - 亮色模式：暖色调，暗色模式：冷色调 */}
+    <div className="h-full w-full flex flex-col items-center p-4 md:p-8 relative overflow-hidden">
+      {/* Background Glows */}
       <div className="absolute top-1/4 left-1/4 w-72 md:w-96 h-72 md:h-96 bg-amber-400/20 dark:bg-purple-600/20 rounded-full blur-[128px] animate-pulse" />
       <div className="absolute bottom-1/4 right-1/4 w-72 md:w-96 h-72 md:h-96 bg-orange-500/20 dark:bg-violet-600/20 rounded-full blur-[128px] animate-pulse" />
 
-      <div className="max-w-2xl w-full space-y-8 md:space-y-12 text-center z-10 py-4 md:py-8">
+      <div className="max-w-3xl w-full h-full flex flex-col z-10 relative">
         {/* AI Chat Box with integrated file upload */}
         {/* AI Chat Box with integrated file upload */}
         <Suspense fallback={<div className="h-[600px] w-full bg-surface rounded-2xl animate-pulse" />}>
           <ChatBox
+            className="flex-1 min-h-0"
             selectedFile={selectedFile}
             onFileSelect={handleFileSelect}
             onAnalysisReady={handleAnalysisReady}

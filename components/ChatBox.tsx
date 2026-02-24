@@ -247,7 +247,7 @@ export function ChatBox({ className = '', selectedFile, onFileSelect, onAnalysis
     };
 
     return (
-        <div className={`flex flex-col h-full ${className}`}>
+        <div className={`flex flex-col flex-1 min-h-0 ${className}`}>
             {/* Hero Section - Only shown when no messages */}
             {messages.length === 0 && (
                 <div className="flex-none flex flex-col items-center justify-center min-h-[40vh] space-y-6 text-center animate-fade-in-up">
