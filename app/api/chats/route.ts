@@ -1,5 +1,6 @@
 import { getCurrentUser } from '@/lib/auth';
 import { getCloudflareContext } from '@/lib/cloudflare';
+import { getOrCreateDbUser } from '@/lib/db';
 
 
 export async function GET(request: Request) {
@@ -17,10 +18,7 @@ export async function GET(request: Request) {
             return Response.json({ error: 'Database not available' }, { status: 500 });
         }
 
-        const dbUser = await db.prepare('SELECT id FROM users WHERE github_id = ?').bind(user.userId).first() as any;
-        if (!dbUser) {
-            return Response.json({ chats: [], count: 0 });
-        }
+        const dbUser = await getOrCreateDbUser(db, user);
 
         const result = await db.prepare(`
             SELECT id, title, created_at
@@ -60,10 +58,7 @@ export async function POST(request: Request) {
             return Response.json({ error: 'Database not available' }, { status: 500 });
         }
 
-        const dbUser = await db.prepare('SELECT id FROM users WHERE github_id = ?').bind(user.userId).first() as any;
-        if (!dbUser) {
-            return Response.json({ error: 'User not found in database' }, { status: 400 });
-        }
+        const dbUser = await getOrCreateDbUser(db, user);
 
         await db.prepare(`
             INSERT INTO chats (id, user_id, title)

@@ -58,7 +58,12 @@ export function ChatBox({ className = '', selectedFile, onFileSelect, onAnalysis
                         const data = await res.json();
                         setMessages(data.messages || []);
                     } else if (res.status === 404) {
-                        router.push('/');
+                        // 只有在当前没有消息时才跳转（避免刚创建的对话闪回空白）
+                        if (messages.length === 0) {
+                            router.push('/');
+                        } else {
+                            console.warn('Chat not found in DB but messages exist locally, keeping state');
+                        }
                     }
                 } else {
                     const localMsgs = localStorage.getItem(`armorclaw_chat_messages_${currentChatId}`);
@@ -74,6 +79,7 @@ export function ChatBox({ className = '', selectedFile, onFileSelect, onAnalysis
         };
 
         loadMessages();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentChatId, user, router]);
 
     const updateLocalChatList = (chatId: string, firstMessage: string) => {

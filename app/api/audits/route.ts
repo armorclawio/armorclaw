@@ -1,5 +1,6 @@
 import { getCurrentUser } from '@/lib/auth';
 import { getCloudflareContext } from '@/lib/cloudflare';
+import { getOrCreateDbUser } from '@/lib/db';
 
 export async function GET(request: Request) {
     // 获取当前用户
@@ -18,10 +19,7 @@ export async function GET(request: Request) {
             return Response.json({ error: 'Database not available' }, { status: 500 });
         }
 
-        const dbUser = await db.prepare('SELECT id FROM users WHERE github_id = ?').bind(user.userId).first() as any;
-        if (!dbUser) {
-            return Response.json({ audits: [], count: 0 });
-        }
+        const dbUser = await getOrCreateDbUser(db, user);
 
         // 查询用户的审计历史
         const result = await db.prepare(`

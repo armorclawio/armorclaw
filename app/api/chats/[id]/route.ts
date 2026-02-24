@@ -1,5 +1,6 @@
 import { getCurrentUser } from '@/lib/auth';
 import { getCloudflareContext } from '@/lib/cloudflare';
+import { getOrCreateDbUser } from '@/lib/db';
 
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -18,10 +19,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             return Response.json({ error: 'Database not available' }, { status: 500 });
         }
 
-        const dbUser = await db.prepare('SELECT id FROM users WHERE github_id = ?').bind(user.userId).first() as any;
-        if (!dbUser) {
-            return Response.json({ error: 'User not found' }, { status: 404 });
-        }
+        const dbUser = await getOrCreateDbUser(db, user);
 
         // Verify ownership
         const chat = await db.prepare(`SELECT * FROM chats WHERE id = ? AND user_id = ?`).bind(chatId, dbUser.id).first();
@@ -64,10 +62,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
             return Response.json({ error: 'Database not available' }, { status: 500 });
         }
 
-        const dbUser = await db.prepare('SELECT id FROM users WHERE github_id = ?').bind(user.userId).first() as any;
-        if (!dbUser) {
-            return Response.json({ error: 'User not found' }, { status: 404 });
-        }
+        const dbUser = await getOrCreateDbUser(db, user);
 
         const result = await db.prepare(`
             DELETE FROM chats WHERE id = ? AND user_id = ?

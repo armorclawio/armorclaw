@@ -1,5 +1,6 @@
 import { getCurrentUser } from '@/lib/auth';
 import { getCloudflareContext } from '@/lib/cloudflare';
+import { getOrCreateDbUser } from '@/lib/db';
 
 
 // 允许的文件类型
@@ -103,33 +104,19 @@ export async function POST(request: Request) {
         const db = ctx.env.DB;
         if (db) {
             try {
-                // 查找或创建用户 (特别是针对开发环境的 mock 用户)
-                let dbUserId = (await db.prepare('SELECT id FROM users WHERE github_id = ?').bind(user.userId).first() as any)?.id;
+                // 查找或创建用户
+                const dbUser = await getOrCreateDbUser(db, user);
 
-                if (!dbUserId && user.userId.startsWith('dev-')) {
-                    const newId = crypto.randomUUID();
-                    console.log('Creating dev user in DB:', newId);
-                    await db.prepare(`
-                        INSERT INTO users (id, github_id, name, email, image)
-                        VALUES (?, ?, ?, ?, ?)
-                    `).bind(newId, user.userId, user.name, user.email, user.image).run();
-                    dbUserId = newId;
-                }
-
-                if (dbUserId) {
-                    await db.prepare(`
-                        INSERT INTO audits (id, user_id, skill_name, skill_hash, status, created_at)
-                        VALUES (?, ?, ?, ?, ?, datetime('now'))
-                    `).bind(
-                        randomId,
-                        dbUserId,
-                        file.name,
-                        fileName, // 使用 R2 key 作为 hash
-                        'pending'
-                    ).run();
-                } else {
-                    console.warn(`User not found in DB for github_id: ${user.userId}, skipping audit log.`);
-                }
+                await db.prepare(`
+                    INSERT INTO audits (id, user_id, skill_name, skill_hash, status, created_at)
+                    VALUES (?, ?, ?, ?, ?, datetime('now'))
+                `).bind(
+                    randomId,
+                    dbUser.id,
+                    file.name,
+                    fileName, // 使用 R2 key 作为 hash
+                    'pending'
+                ).run();
             } catch (dbError) {
                 console.error('Failed to save to database:', dbError);
                 // 继续，即使数据库保存失败

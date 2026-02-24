@@ -1,6 +1,7 @@
 import { chatWithAI } from '@/lib/ai-service';
 import { getCurrentUser } from '@/lib/auth';
 import { getCloudflareContext } from '@/lib/cloudflare';
+import { getOrCreateDbUser } from '@/lib/db';
 
 export async function POST(request: Request) {
     try {
@@ -75,10 +76,7 @@ export async function POST(request: Request) {
                         // 提取标题（使用消息的前 30 个字符）
                         const title = message.slice(0, 30) + (message.length > 30 ? '...' : '');
 
-                        const dbUser = await db.prepare('SELECT id FROM users WHERE github_id = ?').bind(user.userId).first() as any;
-                        if (!dbUser) {
-                            throw new Error('User not found in database');
-                        }
+                        const dbUser = await getOrCreateDbUser(db, user);
 
                         await db.prepare(`
                             INSERT INTO chats (id, user_id, title)
