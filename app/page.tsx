@@ -59,11 +59,6 @@ export default function Home() {
           </div>
         )}
       </div>
-
-      {/* Footer Branding */}
-      <div className="absolute bottom-8 text-ink-soft/20 text-xs font-medium tracking-widest flex items-center gap-2">
-        {t.common.poweredBy}
-      </div>
     </div>
   );
 }
