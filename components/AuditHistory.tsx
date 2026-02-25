@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { History, Loader2, AlertCircle } from 'lucide-react';
+import { History, Loader2, AlertCircle, Trash2 } from 'lucide-react';
 import { useTranslation } from './LanguageProvider';
 
 interface Audit {
@@ -17,6 +17,7 @@ export function AuditHistory() {
     const [audits, setAudits] = useState<Audit[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchAudits();
@@ -44,6 +45,33 @@ export function AuditHistory() {
             setError(t.sidebar.loadError);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDelete = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation(); // 阻止触发条目点击
+
+        if (!window.confirm(t.sidebar.deleteAuditConfirm)) {
+            return;
+        }
+
+        setDeletingId(id);
+        try {
+            const response = await fetch(`/api/audits/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete audit');
+            }
+
+            // 更新本地状态
+            setAudits(audits.filter(a => a.id !== id));
+        } catch (err) {
+            console.error('Error deleting audit:', err);
+            alert(t.sidebar.deleteError);
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -112,12 +140,12 @@ export function AuditHistory() {
             {audits.map((audit) => (
                 <div
                     key={audit.id}
-                    className="sidebar-item p-3 rounded-xl cursor-pointer"
+                    className="sidebar-item p-3 rounded-xl cursor-pointer group relative"
                 >
                     <div className="flex items-start gap-3">
                         <History className={`w-4 h-4 mt-0.5 flex-shrink-0 ${getStatusColor(audit.status)}`} />
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-ink truncate">
+                            <p className="text-sm font-medium text-ink truncate pr-6">
                                 {audit.skill_name}
                             </p>
                             <div className="flex items-center gap-2 mt-1">
@@ -138,6 +166,19 @@ export function AuditHistory() {
                             </p>
                         </div>
                     </div>
+
+                    <button
+                        onClick={(e) => handleDelete(e, audit.id)}
+                        disabled={deletingId === audit.id}
+                        className="absolute right-2 top-3 p-1.5 text-ink-soft/30 hover:text-error opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-error/5"
+                        title={t.common.delete || 'Delete'}
+                    >
+                        {deletingId === audit.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                        )}
+                    </button>
                 </div>
             ))}
         </div>

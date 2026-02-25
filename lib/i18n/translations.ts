@@ -10,6 +10,7 @@ export const translations = {
             cancel: "Cancel",
             close: "Close",
             settings: "Settings",
+            delete: "Delete",
         },
         chat: {
             heroTitle: "AI + eBPF Security Audit",
@@ -39,6 +40,9 @@ export const translations = {
             submitFirstAudit: "Submit your first audit task",
             scoreLabel: "Score",
             loadError: "Failed to load audit history",
+            deleteAuditConfirm: "Are you sure you want to delete this audit record?",
+            deleteSuccess: "Audit record deleted",
+            deleteError: "Failed to delete audit record",
         },
         report: {
             title: "Security Audit Report",
@@ -68,6 +72,7 @@ export const translations = {
             cancel: "取消",
             close: "关闭",
             settings: "设置",
+            delete: "删除",
         },
         chat: {
             heroTitle: "AI + eBPF 安全审计",
@@ -97,6 +102,9 @@ export const translations = {
             submitFirstAudit: "提交第一个审计任务吧",
             scoreLabel: "分数",
             loadError: "无法加载审计历史",
+            deleteAuditConfirm: "确定要删除这条审计记录吗？",
+            deleteSuccess: "审计记录已删除",
+            deleteError: "删除审计记录失败",
         },
         report: {
             title: "安全审计报告",
