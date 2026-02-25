@@ -2,7 +2,6 @@ import { getCurrentUser } from '@/lib/auth';
 import { getCloudflareContext } from '@/lib/cloudflare';
 import { getOrCreateDbUser } from '@/lib/db';
 
-
 // 允许的文件类型
 const ALLOWED_TYPES = [
     'application/zip',
@@ -16,18 +15,55 @@ const ALLOWED_TYPES = [
     'application/x-executable',
 ];
 
-// 最大文件大小：10MB
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+// 默认限额配置
+const GUEST_MAX_FILES = 1;
+const GUEST_MAX_SIZE = 2 * 1024 * 1024; // 2MB
+const USER_MAX_FILES = 10;
+const USER_MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function POST(request: Request) {
     try {
-        // 验证用户登录
-        const user = await getCurrentUser();
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        const ctx = await getCloudflareContext();
+        const storage = ctx.env.STORAGE;
+        const db = ctx.env.DB;
+
+        if (!storage) {
+            return Response.json({ error: 'Storage not available' }, { status: 500 });
         }
 
-        // 获取表单数据
+        // 1. 获取用户信息或客户端 IP
+        const user = await getCurrentUser();
+        const clientIP = request.headers.get('cf-connecting-ip') || 'anonymous';
+
+        // 2. 确定限额 (未登录: 1个/2MB, 已登录: 10个/10MB)
+        const isGuest = !user;
+        const MAX_FILES = isGuest ? GUEST_MAX_FILES : USER_MAX_FILES;
+        const CURRENT_MAX_SIZE = isGuest ? GUEST_MAX_SIZE : USER_MAX_SIZE;
+
+        // 3. 统计已上传文件数量
+        let existingCount = 0;
+        let dbUserId: number | string | null = null;
+
+        if (db) {
+            if (user) {
+                const dbUser = await getOrCreateDbUser(db, user);
+                dbUserId = dbUser.id;
+            } else {
+                // 对游客，通过 ip:xxx 的方式记录
+                dbUserId = `ip:${clientIP}`;
+            }
+            const result = await db.prepare('SELECT COUNT(*) as count FROM audits WHERE user_id = ?').bind(dbUserId).first();
+            existingCount = (result?.count as number) || 0;
+        }
+
+        if (existingCount >= MAX_FILES) {
+            return Response.json(
+                { error: `Upload limit reached. ${isGuest ? 'Guests' : 'Logged-in users'} can only upload up to ${MAX_FILES} file(s).` },
+                { status: 403 }
+            );
+        }
+
+        // 4. 获取表单数据
         const formData = await request.formData();
         const file = formData.get('file') as File;
 
@@ -35,91 +71,64 @@ export async function POST(request: Request) {
             return Response.json({ error: 'No file provided' }, { status: 400 });
         }
 
-        // 验证文件大小
-        if (file.size > MAX_FILE_SIZE) {
+        // 5. 验证文件大小
+        if (file.size > CURRENT_MAX_SIZE) {
             return Response.json(
-                { error: `File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB` },
+                { error: `File too large. ${isGuest ? 'Guest' : 'Logged-in user'} limit is ${CURRENT_MAX_SIZE / 1024 / 1024}MB` },
                 { status: 400 }
             );
         }
 
-        // 验证文件类型
-        // 验证文件类型
+        // 6. 验证文件类型
         const isValidType = ALLOWED_TYPES.includes(file.type);
         const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
-        // 允许的扩展名白名单（作为辅助验证）
-        const ALLOWED_EXTENSIONS = ['c', 'h', 'o', 'zip', 'tar', 'gz', 'json', 'yaml', 'md', 'txt'];
+        const ALLOWED_EXTENSIONS = [
+            'c', 'h', 'o', 'so', 'elf', 'bin',
+            'zip', 'tar', 'gz', 'tgz',
+            'json', 'yaml', 'yml', 'md', 'txt'
+        ];
         const isValidExtension = ALLOWED_EXTENSIONS.includes(fileExtension);
 
-        if (!isValidType || (file.type === '' && !isValidExtension)) {
-            // 如果类型为空（某些系统可能不发送 type），则必须验证扩展名
-            // 如果类型不为空但不在白名单中，拒绝
-            if (file.type !== '' && !isValidType) {
-                return Response.json(
-                    { error: 'Invalid file type. Please upload a valid eBPF skill file.' },
-                    { status: 400 }
-                );
-            }
-            // 如果类型是空，检查扩展名
-            if (file.type === '' && !isValidExtension) {
-                return Response.json(
-                    { error: 'Unknown file type and invalid extension.' },
-                    { status: 400 }
-                );
-            }
+        if (!isValidType && !isValidExtension) {
+            return Response.json(
+                { error: 'Invalid file type. Please upload a valid eBPF skill file.' },
+                { status: 400 }
+            );
         }
 
-        // 生成唯一的文件名
+        // 7. 生成唯一存储 Key
         const timestamp = Date.now();
         const randomId = crypto.randomUUID();
-        // fileExtension 已经在前面定义并验证过了
-        // const fileExtension = file.name.split('.').pop() || 'bin';
         const finalExtension = fileExtension || 'bin';
-        const fileName = `${user.userId}/${timestamp}-${randomId}.${finalExtension}`;
+        const storageUserId = user ? user.userId : `guest-${clientIP.replace(/[:.]/g, '-')}`;
+        const fileName = `${storageUserId}/${timestamp}-${randomId}.${finalExtension}`;
 
-        // 获取 R2 存储桶
-        const ctx = await getCloudflareContext();
-        const storage = ctx.env.STORAGE;
-
-        if (!storage) {
-            return Response.json({ error: 'Storage not available' }, { status: 500 });
-        }
-
-        // 读取文件内容
+        // 8. 上传到 R2
         const fileBuffer = await file.arrayBuffer();
-
-        // 上传到 R2
         await storage.put(fileName, fileBuffer, {
-            httpMetadata: {
-                contentType: file.type || 'application/octet-stream',
-            },
+            httpMetadata: { contentType: file.type || 'application/octet-stream' },
             customMetadata: {
                 originalName: file.name,
-                uploadedBy: user.userId,
+                uploadedBy: user ? user.userId : `guest:${clientIP}`,
                 uploadedAt: new Date().toISOString(),
             },
         });
 
-        // 保存文件记录到数据库
-        const db = ctx.env.DB;
-        if (db) {
+        // 9. 保存到数据库
+        if (db && dbUserId) {
             try {
-                // 查找或创建用户
-                const dbUser = await getOrCreateDbUser(db, user);
-
                 await db.prepare(`
                     INSERT INTO audits (id, user_id, skill_name, skill_hash, status, created_at)
                     VALUES (?, ?, ?, ?, ?, datetime('now'))
                 `).bind(
                     randomId,
-                    dbUser.id,
+                    dbUserId,
                     file.name,
-                    fileName, // 使用 R2 key 作为 hash
+                    fileName,
                     'pending'
                 ).run();
             } catch (dbError) {
                 console.error('Failed to save to database:', dbError);
-                // 继续，即使数据库保存失败
             }
         }
 
@@ -137,10 +146,7 @@ export async function POST(request: Request) {
 
     } catch (error) {
         console.error('Upload error:', error);
-        return Response.json(
-            { error: 'Failed to upload file' },
-            { status: 500 }
-        );
+        return Response.json({ error: 'Failed to upload file' }, { status: 500 });
     }
 }
 

@@ -64,7 +64,7 @@ export function ChatInput({
                     type="file"
                     onChange={handleFileSelect}
                     className="hidden"
-                    accept=".zip,.tar,.gz,.tgz,.o,.so,.elf,.bin"
+                    accept=".c,.h,.o,.so,.elf,.bin,.zip,.tar,.gz,.tgz,.json,.yaml,.yml,.md,.txt"
                 />
 
                 <button
