@@ -11,6 +11,7 @@ export const translations = {
             close: "Close",
             settings: "Settings",
             delete: "Delete",
+            backToHome: "Back to Home",
         },
         chat: {
             heroTitle: "AI + eBPF Security Audit",
@@ -60,6 +61,8 @@ export const translations = {
             analysisTime: "Analysis Time",
             analyzerVersion: "Analyzer Version",
             loadError: "Failed to load analysis result",
+            copyLink: "Copy Link",
+            linkCopied: "Link Copied!",
         }
     },
     zh: {
@@ -74,6 +77,7 @@ export const translations = {
             close: "关闭",
             settings: "设置",
             delete: "删除",
+            backToHome: "返回首页",
         },
         chat: {
             heroTitle: "AI + eBPF 安全审计",
@@ -123,6 +127,8 @@ export const translations = {
             analysisTime: "分析时间",
             analyzerVersion: "分析器版本",
             loadError: "无法加载分析结果",
+            copyLink: "复制链接",
+            linkCopied: "链接已复制！",
         }
     }
 };

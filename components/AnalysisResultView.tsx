@@ -9,7 +9,8 @@ import {
     Shield,
     TrendingUp,
     FileText,
-    Clock
+    Clock,
+    Link2
 } from 'lucide-react';
 import { AnalysisResult } from '@/types';
 import { formatDate } from '@/lib/utils';
@@ -25,6 +26,7 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
     const [result, setResult] = useState<AnalysisResult | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         fetchAnalysisResult();
@@ -78,6 +80,13 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCopyLink = () => {
+        const url = `${window.location.origin}/audits/${auditId}`;
+        navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
     const getStatusIcon = (status: string) => {
@@ -136,14 +145,24 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
                     </h2>
                     <p className="text-ink-soft/60 text-sm mt-1">{result.metadata.file_name}</p>
                 </div>
-                {onClose && (
+                <div className="flex items-center gap-2">
                     <button
-                        onClick={onClose}
-                        className="text-ink-soft hover:text-ink transition-colors"
+                        onClick={handleCopyLink}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-ink-soft hover:text-accent hover:bg-accent/10 transition-all rounded-lg border border-line"
+                        title={t.report.copyLink}
                     >
-                        ✕
+                        <Link2 className="w-3.5 h-3.5" />
+                        {copied ? t.report.linkCopied : t.report.copyLink}
                     </button>
-                )}
+                    {onClose && (
+                        <button
+                            onClick={onClose}
+                            className="p-1.5 text-ink-soft hover:text-ink hover:bg-line transition-all rounded-lg"
+                        >
+                            <XCircle className="w-5 h-5" />
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Score Card */}
