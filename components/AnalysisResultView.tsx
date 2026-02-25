@@ -28,6 +28,7 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
 
     useEffect(() => {
         fetchAnalysisResult();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [auditId]);
 
     const fetchAnalysisResult = async () => {
@@ -36,6 +37,12 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
 
             // First try to GET the result
             let response = await fetch(`/api/analysis/${auditId}`);
+
+            // Handle unauthorized (guest users)
+            if (response.status === 401) {
+                throw new Error('请登录后查看分析结果');
+            }
+
             let data = await response.json();
 
             // If analysis is pending or not found, trigger it via POST
@@ -43,12 +50,21 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
                 console.log('Analysis pending or not found, triggering new analysis...');
                 response = await fetch(`/api/analysis/${auditId}`, { method: 'POST' });
 
+                if (response.status === 401) {
+                    throw new Error('请登录后查看分析结果');
+                }
+
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`Analysis failed: ${errorText}`);
                 }
 
                 data = await response.json();
+
+                // POST response has structure: { success, result, usedAI }
+                if (data.result) {
+                    data = data.result;
+                }
             }
 
             if (data.error) {

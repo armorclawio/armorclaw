@@ -95,13 +95,10 @@ export async function GET(
 ) {
     try {
         const user = await getCurrentUser();
+        const clientIP = request.headers.get('cf-connecting-ip') || 'anonymous';
         const { id: auditId } = await params;
 
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // 从数据库获取审计记录
+        // 从数据库获取审计记录（使用 LEFT JOIN 支持游客 user_id 格式）
         const ctx = await getCloudflareContext();
         const db = ctx.env.DB;
 
@@ -110,19 +107,28 @@ export async function GET(
         }
 
         const audit = await db.prepare(`
-      SELECT a.*, u.github_id
-      FROM audits a
-      JOIN users u ON a.user_id = u.id
-      WHERE a.id = ?
-    `).bind(auditId).first() as any;
+            SELECT a.*, u.github_id
+            FROM audits a
+            LEFT JOIN users u ON a.user_id = u.id
+            WHERE a.id = ?
+        `).bind(auditId).first() as any;
 
         if (!audit) {
             return Response.json({ error: 'Audit not found' }, { status: 404 });
         }
 
         // 验证用户权限
-        if (audit.github_id !== user.userId) {
-            return Response.json({ error: 'Forbidden' }, { status: 403 });
+        if (user) {
+            // 已登录用户：校验 github_id
+            if (audit.github_id && audit.github_id !== user.userId) {
+                return Response.json({ error: 'Forbidden' }, { status: 403 });
+            }
+        } else {
+            // 游客：校验 IP
+            const expectedUserId = `ip:${clientIP}`;
+            if (audit.user_id !== expectedUserId) {
+                return Response.json({ error: 'Unauthorized' }, { status: 401 });
+            }
         }
 
         // 如果已有分析结果，直接返回
@@ -141,10 +147,10 @@ export async function GET(
 
             // 保存分析结果到数据库
             await db.prepare(`
-           UPDATE audits
-           SET ebpf_log_json = ?, status = ?, score = ?
-           WHERE id = ?
-         `).bind(
+                UPDATE audits
+                SET ebpf_log_json = ?, status = ?, score = ?
+                WHERE id = ?
+            `).bind(
                 JSON.stringify(result),
                 result.status,
                 result.score,
@@ -172,13 +178,10 @@ export async function POST(
 ) {
     try {
         const user = await getCurrentUser();
+        const clientIP = request.headers.get('cf-connecting-ip') || 'anonymous';
         const { id: auditId } = await params;
 
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // 获取审计记录
+        // 获取审计记录（使用 LEFT JOIN 支持游客）
         const ctx = await getCloudflareContext();
         const db = ctx.env.DB;
 
@@ -187,18 +190,26 @@ export async function POST(
         }
 
         const audit = await db.prepare(`
-      SELECT a.*, u.github_id
-      FROM audits a
-      JOIN users u ON a.user_id = u.id
-      WHERE a.id = ?
-    `).bind(auditId).first() as any;
+            SELECT a.*, u.github_id
+            FROM audits a
+            LEFT JOIN users u ON a.user_id = u.id
+            WHERE a.id = ?
+        `).bind(auditId).first() as any;
 
         if (!audit) {
             return Response.json({ error: 'Audit not found' }, { status: 404 });
         }
 
-        if (audit.github_id !== user.userId) {
-            return Response.json({ error: 'Forbidden' }, { status: 403 });
+        // 验证权限
+        if (user) {
+            if (audit.github_id && audit.github_id !== user.userId) {
+                return Response.json({ error: 'Forbidden' }, { status: 403 });
+            }
+        } else {
+            const expectedUserId = `ip:${clientIP}`;
+            if (audit.user_id !== expectedUserId) {
+                return Response.json({ error: 'Unauthorized' }, { status: 401 });
+            }
         }
 
         // 获取 AI API Key

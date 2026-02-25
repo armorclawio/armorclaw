@@ -32,7 +32,7 @@ export default function Home() {
       <div className="max-w-3xl w-full h-full flex flex-col z-10 relative">
         {/* AI Chat Box with integrated file upload */}
         {/* AI Chat Box with integrated file upload */}
-        <Suspense fallback={<div className="h-[600px] w-full bg-surface rounded-2xl animate-pulse" />}>
+        <Suspense fallback={<div className="h-32 w-full bg-surface/40 rounded-2xl animate-pulse" />}>
           <ChatBox
             className="flex-1 min-h-0"
             selectedFile={selectedFile}
@@ -49,8 +49,8 @@ export default function Home() {
 
         {/* Analysis Result Section */}
         {showAnalysis && currentAuditId && (
-          <div className="space-y-4 mt-8">
-            <div className="bg-surface border border-line rounded-2xl p-6">
+          <div className="space-y-4 mt-8 mb-8">
+            <div className="bg-surface border border-line rounded-2xl p-6 overflow-y-auto max-h-[80vh]">
               <AnalysisResultView
                 auditId={currentAuditId}
                 onClose={() => setShowAnalysis(false)}
