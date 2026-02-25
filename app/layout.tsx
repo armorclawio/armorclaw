@@ -9,6 +9,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { SidebarProvider } from "@/components/SidebarProvider";
+import { AuditReportDrawer } from "@/components/AuditReportDrawer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,6 +47,7 @@ export default async function RootLayout({
               disableTransitionOnChange
             >
               <SidebarProvider>
+                <AuditReportDrawer />
                 {/* Sidebar */}
                 <Sidebar user={user} />
 

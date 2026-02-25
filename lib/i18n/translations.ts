@@ -43,6 +43,7 @@ export const translations = {
             deleteAuditConfirm: "Are you sure you want to delete this audit record?",
             deleteSuccess: "Audit record deleted",
             deleteError: "Failed to delete audit record",
+            viewReport: "Audit Report",
         },
         report: {
             title: "Security Audit Report",
@@ -105,6 +106,7 @@ export const translations = {
             deleteAuditConfirm: "确定要删除这条审计记录吗？",
             deleteSuccess: "审计记录已删除",
             deleteError: "删除审计记录失败",
+            viewReport: "审计报告",
         },
         report: {
             title: "安全审计报告",

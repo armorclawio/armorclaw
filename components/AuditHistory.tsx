@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { History, Loader2, AlertCircle, Trash2 } from 'lucide-react';
 import { useTranslation } from './LanguageProvider';
+import { useSidebar } from './SidebarProvider';
 
 interface Audit {
     id: string;
@@ -14,6 +15,7 @@ interface Audit {
 
 export function AuditHistory() {
     const { t, language } = useTranslation();
+    const { setActiveAuditId } = useSidebar();
     const [audits, setAudits] = useState<Audit[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -178,6 +180,16 @@ export function AuditHistory() {
                         ) : (
                             <Trash2 className="w-3.5 h-3.5" />
                         )}
+                    </button>
+
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveAuditId(audit.id);
+                        }}
+                        className="absolute right-2 bottom-3 text-[10px] px-2 py-0.5 bg-accent/10 hover:bg-accent/20 text-accent rounded transition-all opacity-0 group-hover:opacity-100 font-medium"
+                    >
+                        {t.sidebar.viewReport}
                     </button>
                 </div>
             ))}
