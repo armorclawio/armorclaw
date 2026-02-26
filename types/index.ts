@@ -29,4 +29,6 @@ export interface AnalysisResult {
         analyzer_version: string;
         file_name: string;
     };
+    is_public?: boolean;
+    is_owner?: boolean;
 }

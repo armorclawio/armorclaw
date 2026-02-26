@@ -63,6 +63,8 @@ export const translations = {
             loadError: "Failed to load analysis result",
             copyLink: "Copy Link",
             linkCopied: "Link Copied!",
+            makePublic: "Make Public",
+            isPublic: "Public",
         }
     },
     zh: {
@@ -129,6 +131,8 @@ export const translations = {
             loadError: "无法加载分析结果",
             copyLink: "复制链接",
             linkCopied: "链接已复制！",
+            makePublic: "公开报告",
+            isPublic: "公开",
         }
     }
 };

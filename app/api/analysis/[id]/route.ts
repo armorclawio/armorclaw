@@ -117,24 +117,30 @@ export async function GET(
             return Response.json({ error: 'Audit not found' }, { status: 404 });
         }
 
-        // 验证用户权限
+        // 验证用户权限 (如果报告是公开的，则允许访问)
+        const isPublicReport = !!audit.is_public;
+        let isOwner = false;
+
         if (user) {
-            // 已登录用户：校验 github_id
-            if (audit.github_id && audit.github_id !== user.userId) {
-                return Response.json({ error: 'Forbidden' }, { status: 403 });
-            }
+            const expectedUserId = audit.github_id;
+            isOwner = expectedUserId === user.userId;
         } else {
-            // 游客：校验 IP
+            const clientIP = request.headers.get('cf-connecting-ip') || 'anonymous';
             const expectedUserId = `ip:${clientIP}`;
-            if (audit.user_id !== expectedUserId) {
-                return Response.json({ error: 'Unauthorized' }, { status: 401 });
-            }
+            isOwner = audit.user_id === expectedUserId;
+        }
+
+        if (!isPublicReport && !isOwner) {
+            return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         // 如果已有分析结果，直接返回
         if (audit.ebpf_log_json) {
             try {
                 const result = JSON.parse(audit.ebpf_log_json);
+                // 附加公开状态
+                result.is_public = isPublicReport;
+                result.is_owner = isOwner;
                 return Response.json(result);
             } catch (e) {
                 // 如果解析失败，生成新的结果
@@ -144,6 +150,8 @@ export async function GET(
         // 生成模拟分析结果 (仅在非生产环境或配置允许时)
         if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_MOCK_ANALYSIS === 'true') {
             const result = generateMockAnalysisResult(audit.skill_name);
+            (result as any).is_public = isPublicReport;
+            (result as any).is_owner = isOwner;
 
             // 保存分析结果到数据库
             await db.prepare(`
@@ -201,15 +209,16 @@ export async function POST(
         }
 
         // 验证权限
+        let isOwner = false;
         if (user) {
-            if (audit.github_id && audit.github_id !== user.userId) {
-                return Response.json({ error: 'Forbidden' }, { status: 403 });
-            }
+            isOwner = audit.github_id === user.userId;
         } else {
             const expectedUserId = `ip:${clientIP}`;
-            if (audit.user_id !== expectedUserId) {
-                return Response.json({ error: 'Unauthorized' }, { status: 401 });
-            }
+            isOwner = audit.user_id === expectedUserId;
+        }
+
+        if (!isOwner) {
+            return Response.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         // 获取 AI API Key
@@ -329,7 +338,7 @@ export async function POST(
 
         return Response.json({
             success: true,
-            result,
+            result: { ...result, is_public: !!audit.is_public, is_owner: isOwner },
             usedAI: !!aiApiKey,
         });
 

@@ -10,7 +10,9 @@ import {
     TrendingUp,
     FileText,
     Clock,
-    Link2
+    Link2,
+    Globe,
+    Lock
 } from 'lucide-react';
 import { AnalysisResult } from '@/types';
 import { formatDate } from '@/lib/utils';
@@ -27,6 +29,7 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+    const [isUpdatingPublic, setIsUpdatingPublic] = useState(false);
 
     useEffect(() => {
         fetchAnalysisResult();
@@ -89,6 +92,30 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const handleTogglePublic = async () => {
+        if (!result || !result.is_owner || isUpdatingPublic) return;
+
+        const newStatus = !result.is_public;
+        setIsUpdatingPublic(true);
+
+        try {
+            const response = await fetch(`/api/audits/${auditId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isPublic: newStatus }),
+            });
+
+            if (!response.ok) throw new Error('Failed to update status');
+
+            setResult({ ...result, is_public: newStatus });
+        } catch (err) {
+            console.error('Update public status error:', err);
+            alert('无法更新公开状态');
+        } finally {
+            setIsUpdatingPublic(false);
+        }
+    };
+
     const getStatusIcon = (status: string) => {
         switch (status) {
             case 'passed':
@@ -146,6 +173,26 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
                     <p className="text-ink-soft/60 text-sm mt-1">{result.metadata.file_name}</p>
                 </div>
                 <div className="flex items-center gap-2">
+                    {result.is_owner && (
+                        <button
+                            onClick={handleTogglePublic}
+                            disabled={isUpdatingPublic}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium transition-all rounded-lg border ${result.is_public
+                                ? 'bg-success/10 text-success border-success/20 hover:bg-success/20'
+                                : 'text-ink-soft hover:text-ink border-line hover:bg-line'
+                                }`}
+                            title={result.is_public ? t.report.isPublic : t.report.makePublic}
+                        >
+                            {isUpdatingPublic ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : result.is_public ? (
+                                <Globe className="w-3.5 h-3.5" />
+                            ) : (
+                                <Lock className="w-3.5 h-3.5" />
+                            )}
+                            {result.is_public ? t.report.isPublic : t.report.makePublic}
+                        </button>
+                    )}
                     <button
                         onClick={handleCopyLink}
                         className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-ink-soft hover:text-accent hover:bg-accent/10 transition-all rounded-lg border border-line"

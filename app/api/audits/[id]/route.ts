@@ -43,3 +43,49 @@ export async function DELETE(
         return Response.json({ error: 'Failed to delete audit' }, { status: 500 });
     }
 }
+
+export async function PATCH(
+    request: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params;
+    const user = await getCurrentUser();
+    const clientIP = request.headers.get('cf-connecting-ip') || 'anonymous';
+
+    try {
+        const { isPublic } = await request.json();
+        const ctx = await getCloudflareContext();
+        const db = ctx.env.DB as any;
+
+        if (!db) {
+            return Response.json({ error: 'Database not available' }, { status: 500 });
+        }
+
+        let dbUserId: string;
+        if (user) {
+            const dbUser = await getOrCreateDbUser(db, user);
+            dbUserId = dbUser.id;
+        } else {
+            dbUserId = `ip:${clientIP}`;
+        }
+
+        // 更新公开状态，确保只能更新属于自己的记录
+        const result = await db.prepare(`
+            UPDATE audits 
+            SET is_public = ?
+            WHERE id = ? AND user_id = ?
+        `).bind(isPublic ? 1 : 0, id, dbUserId).run();
+
+        if (result.success && result.meta.changes > 0) {
+            return Response.json({ success: true });
+        } else if (result.success && result.meta.changes === 0) {
+            return Response.json({ error: 'Audit not found or not owner' }, { status: 403 });
+        } else {
+            return Response.json({ error: 'Failed to update audit' }, { status: 500 });
+        }
+
+    } catch (error) {
+        console.error('Failed to update audit:', error);
+        return Response.json({ error: 'Failed to update audit' }, { status: 500 });
+    }
+}
