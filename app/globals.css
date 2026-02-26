@@ -176,8 +176,27 @@ html.dark .glow::before {
   }
 }
 
+@keyframes fade-in-stamp {
+  0% {
+    opacity: 0;
+    transform: scale(3) rotate(45deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(0.9) rotate(20deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(25deg);
+  }
+}
+
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
+}
+
+.animate-stamp {
+  animation: fade-in-stamp 1s ease-out forwards;
 }
 
 /* ============================================

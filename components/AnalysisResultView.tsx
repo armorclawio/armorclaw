@@ -12,7 +12,13 @@ import {
     Clock,
     Link2,
     Globe,
-    Lock
+    Lock,
+    DownloadCloud,
+    Box,
+    Star,
+    Share2,
+    ExternalLink,
+    BadgeCheck
 } from 'lucide-react';
 import { AnalysisResult } from '@/types';
 import { formatDate } from '@/lib/utils';
@@ -116,6 +122,22 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
         }
     };
 
+    const handleDownloadReport = () => {
+        if (!result) return;
+        const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `armorclaw-audit-${auditId}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const handleOpenInVSCode = () => {
+        // Conceptual link
+        window.open('vscode:extension/armorclaw.auditor', '_blank');
+    };
+
     const getStatusIcon = (status: string) => {
         switch (status) {
             case 'passed':
@@ -162,55 +184,122 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
     }
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-start justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-ink flex items-center gap-2">
-                        <Shield className="w-6 h-6 text-accent" />
-                        {t.report.title}
-                    </h2>
-                    <p className="text-ink-soft/60 text-sm mt-1">{result.metadata.file_name}</p>
+        <div className="space-y-8 relative">
+            {/* Stamp Overlay */}
+            {result.score >= 60 && (
+                <div className="absolute -top-4 -right-4 md:-top-10 md:-right-10 pointer-events-none select-none z-50 animate-stamp">
+                    <div className="border-[6px] border-success/40 text-success/40 px-6 py-2 rounded-2xl font-black text-2xl md:text-4xl tracking-widest uppercase flex flex-col items-center leading-none transform -skew-x-12 bg-success/5 backdrop-blur-[2px]">
+                        <span className="text-[10px] md:text-xs mb-1 font-bold tracking-[0.3em] text-success/60">{t.report.officialSeal}</span>
+                        {t.report.passedStamp}
+                        <div className="w-full h-[2px] bg-success/30 mt-2" />
+                        <span className="text-[10px] md:text-sm mt-1 font-mono">{new Date(result.metadata.analyzed_at).getFullYear()}-{result.metadata.analyzer_version}</span>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    {result.is_owner && (
-                        <button
-                            onClick={handleTogglePublic}
-                            disabled={isUpdatingPublic}
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium transition-all rounded-lg border ${result.is_public
-                                ? 'bg-success/10 text-success border-success/20 hover:bg-success/20'
-                                : 'text-ink-soft hover:text-ink border-line hover:bg-line'
-                                }`}
-                            title={result.is_public ? t.report.isPublic : t.report.makePublic}
-                        >
-                            {isUpdatingPublic ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : result.is_public ? (
-                                <Globe className="w-3.5 h-3.5" />
-                            ) : (
-                                <Lock className="w-3.5 h-3.5" />
+            )}
+
+            {/* Marketplace-style Header */}
+            <div className="flex flex-col md:flex-row gap-8 mb-4 items-start relative">
+                <div className="w-32 h-32 md:w-40 md:h-40 shrink-0 rounded-3xl bg-gradient-to-br from-accent/20 to-accent/5 border border-line flex items-center justify-center shadow-inner group relative overflow-hidden">
+                    <Shield className="w-16 h-16 md:w-20 md:h-20 text-accent group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-accent/10 to-transparent" />
+                    <div className="absolute inset-0 border-[8px] border-white/5 rounded-3xl" />
+                </div>
+
+                <div className="flex-1">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h1 className="text-3xl md:text-4xl font-black text-ink tracking-tight mb-2 flex flex-wrap items-center gap-3">
+                                {t.report.title}
+                                <span className="bg-accent/10 text-accent text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider border border-accent/20">
+                                    AGENT READY
+                                </span>
+                            </h1>
+                            <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs md:text-sm text-ink-soft/60">
+                                <span className="flex items-center gap-1.5 hover:text-accent cursor-pointer transition-colors">
+                                    <span className="font-semibold text-ink-soft">{t.report.publisher}</span>
+                                    <BadgeCheck className="w-4 h-4 text-accent fill-accent/20" />
+                                </span>
+                                <span className="w-1 h-1 bg-line rounded-full" />
+                                <div className="flex items-center gap-0.5">
+                                    {[1, 2, 3, 4].map(i => (
+                                        <Star key={i} className="w-3.5 h-3.5 text-warning fill-warning" />
+                                    ))}
+                                    <Star className="w-3.5 h-3.5 text-warning/40 fill-warning/40" />
+                                    <span className="ml-1.5 font-medium text-ink-soft">(4.9)</span>
+                                </div>
+                                <span className="w-1 h-1 bg-line rounded-full" />
+                                <span className="flex items-center gap-1.5">
+                                    <DownloadCloud className="w-3.5 h-3.5" />
+                                    128k+ {t.report.downloads}
+                                </span>
+                                <span className="w-1 h-1 bg-line rounded-full" />
+                                <span className="flex items-center gap-1.5">v{result.metadata.analyzer_version}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            {result.is_owner && (
+                                <button
+                                    onClick={handleTogglePublic}
+                                    disabled={isUpdatingPublic}
+                                    className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold transition-all rounded-xl border ${result.is_public
+                                        ? 'bg-success/10 text-success border-success/20 hover:bg-success/20'
+                                        : 'text-ink-soft hover:text-ink border-line hover:bg-line'
+                                        }`}
+                                    title={result.is_public ? t.report.isPublic : t.report.makePublic}
+                                >
+                                    {isUpdatingPublic ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    ) : result.is_public ? (
+                                        <Globe className="w-3.5 h-3.5" />
+                                    ) : (
+                                        <Lock className="w-3.5 h-3.5" />
+                                    )}
+                                    {result.is_public ? t.report.isPublic : t.report.makePublic}
+                                </button>
                             )}
-                            {result.is_public ? t.report.isPublic : t.report.makePublic}
-                        </button>
-                    )}
-                    <button
-                        onClick={handleCopyLink}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-ink-soft hover:text-accent hover:bg-accent/10 transition-all rounded-lg border border-line"
-                        title={t.report.copyLink}
-                    >
-                        <Link2 className="w-3.5 h-3.5" />
-                        {copied ? t.report.linkCopied : t.report.copyLink}
-                    </button>
-                    {onClose && (
+                            <button
+                                onClick={handleCopyLink}
+                                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-ink-soft hover:text-accent hover:bg-accent/10 transition-all rounded-xl border border-line"
+                                title={t.report.copyLink}
+                            >
+                                <Link2 className="w-3.5 h-3.5" />
+                                {copied ? t.report.linkCopied : t.report.copyLink}
+                            </button>
+                            {onClose && (
+                                <button
+                                    onClick={onClose}
+                                    className="p-2 text-ink-soft hover:text-ink hover:bg-line transition-all rounded-xl"
+                                >
+                                    <XCircle className="w-5 h-5" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3">
                         <button
-                            onClick={onClose}
-                            className="p-1.5 text-ink-soft hover:text-ink hover:bg-line transition-all rounded-lg"
+                            onClick={handleDownloadReport}
+                            className="bg-accent hover:bg-accent/90 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-accent/20 transition-all active:scale-95 group"
                         >
-                            <XCircle className="w-5 h-5" />
+                            <DownloadCloud className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
+                            {t.report.downloadReport}
                         </button>
-                    )}
+                        <button
+                            onClick={handleOpenInVSCode}
+                            className="bg-surface border border-line hover:bg-line/50 text-ink px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all active:scale-95 group"
+                        >
+                            <Box className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                            {t.report.openInVSCode}
+                        </button>
+                        <button className="bg-surface border border-line hover:bg-line/50 text-ink p-3 rounded-xl transition-all active:scale-95" title="More options">
+                            <Share2 className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-line to-transparent opacity-50" />
 
             {/* Score Card */}
             <div className="relative overflow-hidden rounded-2xl bg-surface border border-line p-6 shadow-sm">

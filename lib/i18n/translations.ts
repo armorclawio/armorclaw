@@ -65,6 +65,13 @@ export const translations = {
             linkCopied: "Link Copied!",
             makePublic: "Make Public",
             isPublic: "Public",
+            downloadReport: "Download Report",
+            openInVSCode: "Open in VS Code",
+            officialSeal: "Official Seal",
+            passedStamp: "ARMORCLAW PASSED",
+            rating: "Rating",
+            downloads: "Downloads",
+            publisher: "ArmorClaw.io"
         }
     },
     zh: {
@@ -133,6 +140,13 @@ export const translations = {
             linkCopied: "链接已复制！",
             makePublic: "公开报告",
             isPublic: "公开",
+            downloadReport: "下载报告",
+            openInVSCode: "在 VS Code 中打开",
+            officialSeal: "官方印章",
+            passedStamp: "ARMORCLAW 已通过",
+            rating: "评分",
+            downloads: "下载量",
+            publisher: "ArmorClaw.io"
         }
     }
 };
