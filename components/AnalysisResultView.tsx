@@ -173,39 +173,44 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
         );
     }
 
+    const fileName = result.metadata.file_name;
+    const baseName = fileName.includes('.') ? fileName.split('.').slice(0, -1).join('.') : fileName;
+
     return (
         <div className="space-y-8 relative">
-            {/* Circular Stamp Overlay */}
-            {result.score >= 60 && (
-                <div className="absolute -top-4 -right-2 md:-top-6 md:right-0 pointer-events-none select-none z-50 animate-stamp">
-                    <div className="border-[6px] border-double border-success/40 text-success/40 w-32 h-32 md:w-44 md:h-44 rounded-full font-black flex flex-col items-center justify-center leading-none bg-success/5 backdrop-blur-[2px] relative shadow-[0_0_30px_rgba(22,163,74,0.1)]">
-                        <div className="absolute inset-2 border-2 border-success/20 rounded-full" />
-                        <span className="text-[8px] md:text-[10px] mb-2 font-bold tracking-[0.3em] text-success/60 uppercase">{t.report.officialSeal}</span>
-                        <div className="text-center px-4 flex flex-col items-center">
-                            <span className="text-lg md:text-2xl tracking-tighter mb-1">{t.report.passedStamp.split(' ')[0]}</span>
-                            <span className="text-xl md:text-3xl tracking-widest">{t.report.passedStamp.split(' ').slice(1).join(' ')}</span>
-                        </div>
-                        <div className="w-1/2 h-[1px] bg-success/30 my-2" />
-                        <span className="text-[10px] md:text-xs font-mono opacity-60">{result.metadata.analyzer_version}</span>
-                        {/* Subtle inner decorative ring */}
-                        <div className="absolute inset-0 rounded-full border border-success/5 m-1" />
-                    </div>
-                </div>
-            )}
-
             {/* Marketplace-style Header */}
-            <div className="flex flex-col md:flex-row gap-8 mb-4 items-start relative">
-                <div className="w-32 h-32 md:w-40 md:h-40 shrink-0 rounded-3xl bg-gradient-to-br from-accent/20 to-accent/5 border border-line flex items-center justify-center shadow-inner group relative overflow-hidden">
-                    <Shield className="w-16 h-16 md:w-20 md:h-20 text-accent group-hover:scale-110 transition-transform duration-500" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-accent/10 to-transparent" />
-                    <div className="absolute inset-0 border-[8px] border-white/5 rounded-3xl" />
+            <div className="flex flex-col md:flex-row gap-8 mb-4 items-start relative px-2">
+                <div className="relative shrink-0">
+                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-3xl bg-gradient-to-br from-accent/20 to-accent/5 border border-line flex items-center justify-center shadow-inner group relative overflow-hidden">
+                        <Shield className="w-16 h-16 md:w-20 md:h-20 text-accent group-hover:scale-110 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-accent/10 to-transparent" />
+                        <div className="absolute inset-0 border-[8px] border-white/5 rounded-3xl" />
+                    </div>
+
+                    {/* Circular Stamp Overlay (Riding Seal Style) */}
+                    {result.score >= 60 && (
+                        <div className="absolute top-1/2 -right-16 md:-right-20 -translate-y-1/2 pointer-events-none select-none z-50 animate-stamp scale-75 md:scale-100">
+                            <div className="border-[6px] border-double border-success/40 text-success/40 w-32 h-32 md:w-44 md:h-44 rounded-full font-black flex flex-col items-center justify-center leading-none bg-success/10 backdrop-blur-[1px] relative shadow-[0_0_30px_rgba(22,163,74,0.15)] ring-4 ring-background/50">
+                                <div className="absolute inset-2 border-2 border-success/20 rounded-full" />
+                                <span className="text-[8px] md:text-[10px] mb-2 font-bold tracking-[0.3em] text-success/60 uppercase">{t.report.officialSeal}</span>
+                                <div className="text-center px-4 flex flex-col items-center">
+                                    <span className="text-sm md:text-xl tracking-tighter mb-1 uppercase opacity-80">{t.report.passedStamp.split(' ')[0]}</span>
+                                    <span className="text-lg md:text-2xl tracking-widest uppercase">{t.report.passedStamp.split(' ').slice(1).join(' ')}</span>
+                                </div>
+                                <div className="w-1/2 h-[1px] bg-success/30 my-2" />
+                                <span className="text-[8px] md:text-[10px] font-mono opacity-60">{result.metadata.analyzer_version}</span>
+                                {/* Subtle inner decorative ring */}
+                                <div className="absolute inset-0 rounded-full border border-success/5 m-1" />
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex-1">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-black text-ink tracking-tight mb-2 flex flex-wrap items-center gap-3">
-                                {t.report.title}
+                            <h1 className="text-3xl md:text-5xl font-black text-ink tracking-tighter mb-2 flex flex-wrap items-center gap-3 uppercase">
+                                {baseName}
                                 <span className="bg-accent/10 text-accent text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider border border-accent/20">
                                     AGENT READY
                                 </span>
@@ -294,7 +299,8 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
 
                 <div className="relative flex items-center justify-between">
                     <div>
-                        <p className="text-ink-soft text-sm font-medium mb-2">{t.report.scoreTitle}</p>
+                        <p className="text-ink-soft/40 text-[10px] font-bold uppercase tracking-widest mb-1">{t.report.title}</p>
+                        <p className="text-ink-soft text-sm font-semibold mb-2">{t.report.scoreTitle}</p>
                         <div className="flex items-baseline gap-2">
                             <span className={`text-5xl font-black ${getScoreColor(result.score)}`}>
                                 {result.score}
