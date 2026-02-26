@@ -122,20 +122,10 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
         }
     };
 
-    const handleDownloadReport = () => {
+    const handleDownloadSkill = () => {
         if (!result) return;
-        const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `armorclaw-audit-${auditId}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
-    const handleOpenInVSCode = () => {
-        // Conceptual link
-        window.open('vscode:extension/armorclaw.auditor', '_blank');
+        // 使用新创建的 API 下载原始文件
+        window.open(`/api/audits/${auditId}/file`, '_blank');
     };
 
     const getStatusIcon = (status: string) => {
@@ -185,14 +175,20 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
 
     return (
         <div className="space-y-8 relative">
-            {/* Stamp Overlay */}
+            {/* Circular Stamp Overlay */}
             {result.score >= 60 && (
-                <div className="absolute -top-4 -right-4 md:-top-10 md:-right-10 pointer-events-none select-none z-50 animate-stamp">
-                    <div className="border-[6px] border-success/40 text-success/40 px-6 py-2 rounded-2xl font-black text-2xl md:text-4xl tracking-widest uppercase flex flex-col items-center leading-none transform -skew-x-12 bg-success/5 backdrop-blur-[2px]">
-                        <span className="text-[10px] md:text-xs mb-1 font-bold tracking-[0.3em] text-success/60">{t.report.officialSeal}</span>
-                        {t.report.passedStamp}
-                        <div className="w-full h-[2px] bg-success/30 mt-2" />
-                        <span className="text-[10px] md:text-sm mt-1 font-mono">{new Date(result.metadata.analyzed_at).getFullYear()}-{result.metadata.analyzer_version}</span>
+                <div className="absolute -top-4 -right-2 md:-top-6 md:right-0 pointer-events-none select-none z-50 animate-stamp">
+                    <div className="border-[6px] border-double border-success/40 text-success/40 w-32 h-32 md:w-44 md:h-44 rounded-full font-black flex flex-col items-center justify-center leading-none bg-success/5 backdrop-blur-[2px] relative shadow-[0_0_30px_rgba(22,163,74,0.1)]">
+                        <div className="absolute inset-2 border-2 border-success/20 rounded-full" />
+                        <span className="text-[8px] md:text-[10px] mb-2 font-bold tracking-[0.3em] text-success/60 uppercase">{t.report.officialSeal}</span>
+                        <div className="text-center px-4 flex flex-col items-center">
+                            <span className="text-lg md:text-2xl tracking-tighter mb-1">{t.report.passedStamp.split(' ')[0]}</span>
+                            <span className="text-xl md:text-3xl tracking-widest">{t.report.passedStamp.split(' ').slice(1).join(' ')}</span>
+                        </div>
+                        <div className="w-1/2 h-[1px] bg-success/30 my-2" />
+                        <span className="text-[10px] md:text-xs font-mono opacity-60">{result.metadata.analyzer_version}</span>
+                        {/* Subtle inner decorative ring */}
+                        <div className="absolute inset-0 rounded-full border border-success/5 m-1" />
                     </div>
                 </div>
             )}
@@ -279,21 +275,11 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
 
                     <div className="flex flex-wrap gap-3">
                         <button
-                            onClick={handleDownloadReport}
+                            onClick={handleDownloadSkill}
                             className="bg-accent hover:bg-accent/90 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-accent/20 transition-all active:scale-95 group"
                         >
                             <DownloadCloud className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
-                            {t.report.downloadReport}
-                        </button>
-                        <button
-                            onClick={handleOpenInVSCode}
-                            className="bg-surface border border-line hover:bg-line/50 text-ink px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all active:scale-95 group"
-                        >
-                            <Box className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                            {t.report.openInVSCode}
-                        </button>
-                        <button className="bg-surface border border-line hover:bg-line/50 text-ink p-3 rounded-xl transition-all active:scale-95" title="More options">
-                            <Share2 className="w-4 h-4" />
+                            {t.report.downloadSkill}
                         </button>
                     </div>
                 </div>
