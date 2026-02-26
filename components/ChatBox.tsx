@@ -38,6 +38,22 @@ export function ChatBox({ className = '', selectedFile, onFileSelect, onAnalysis
         setCurrentChatId(paramChatId);
     }, [paramChatId]);
 
+    // Listen for 'new-audit' event
+    useEffect(() => {
+        const handleNewAudit = () => {
+            setMessages([]);
+            setInput('');
+            setCurrentChatId(null);
+            // Remove chatId from URL without full reload
+            const url = new URL(window.location.href);
+            url.searchParams.delete('chatId');
+            window.history.pushState({}, '', url.toString());
+        };
+
+        window.addEventListener('new-audit', handleNewAudit);
+        return () => window.removeEventListener('new-audit', handleNewAudit);
+    }, []);
+
     const LOCAL_CHATS_KEY = 'armorclaw_chats';
 
 

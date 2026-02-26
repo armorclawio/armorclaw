@@ -45,6 +45,7 @@ export const translations = {
             deleteSuccess: "Audit record deleted",
             deleteError: "Failed to delete audit record",
             viewReport: "Audit Report",
+            newAudit: "New Audit",
         },
         report: {
             title: "Security Audit Report",
@@ -71,6 +72,15 @@ export const translations = {
             rating: "Rating",
             downloads: "Downloads",
             publisher: "ArmorClaw.io"
+        },
+        market: {
+            title: "Skill Market",
+            searchPlaceholder: "Search public skills...",
+            noSkills: "No skills found",
+            loadError: "Failed to load skills",
+            publicSkills: "Public Skills",
+            viewDetails: "View Report",
+            score: "Score",
         }
     },
     zh: {
@@ -119,6 +129,7 @@ export const translations = {
             deleteSuccess: "审计记录已删除",
             deleteError: "删除审计记录失败",
             viewReport: "审计报告",
+            newAudit: "新的审计",
         },
         report: {
             title: "安全审计报告",
@@ -145,6 +156,15 @@ export const translations = {
             rating: "评分",
             downloads: "下载量",
             publisher: "ArmorClaw.io"
+        },
+        market: {
+            title: "技能市场",
+            searchPlaceholder: "搜索公开技能...",
+            noSkills: "未找到相关技能",
+            loadError: "加载技能失败",
+            publicSkills: "公开技能",
+            viewDetails: "查看报告",
+            score: "评分",
         }
     }
 };
