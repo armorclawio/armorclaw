@@ -21,16 +21,17 @@ export async function GET(request: Request) {
 
         const dbUser = await getOrCreateDbUser(db, user);
 
-        // Fetch all audits (no limit for export)
+        // Fetch all audits
         const result = await db.prepare(`
             SELECT
                 id,
                 skill_name,
+                skill_hash,
                 status,
                 score,
                 is_public,
                 created_at,
-                updated_at
+                ebpf_log_json
             FROM audits
             WHERE user_id = ?
             ORDER BY created_at DESC
@@ -39,7 +40,22 @@ export async function GET(request: Request) {
         const audits: Record<string, any>[] = result.results || [];
 
         if (format === 'json') {
-            const body = JSON.stringify({ exported_at: new Date().toISOString(), total: audits.length, audits }, null, 2);
+            // Parse ebpf_log_json for better JSON structure
+            const richAudits = audits.map(a => {
+                const { ebpf_log_json, ...rest } = a;
+                return {
+                    ...rest,
+                    is_public: !!a.is_public,
+                    ebpf_log: ebpf_log_json ? tryParse(ebpf_log_json) : null
+                };
+            });
+
+            const body = JSON.stringify({
+                exported_at: new Date().toISOString(),
+                total: audits.length,
+                audits: richAudits
+            }, null, 2);
+
             return new Response(body, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -49,12 +65,26 @@ export async function GET(request: Request) {
         }
 
         // CSV
-        const headers = ['id', 'skill_name', 'status', 'score', 'is_public', 'created_at', 'updated_at'];
+        // Mapping internal keys to human-friendly headers
+        const headerMap = {
+            'id': 'Audit ID',
+            'skill_name': 'Skill Name',
+            'skill_hash': 'File Hash',
+            'status': 'Status',
+            'score': 'Security Score',
+            'is_public': 'Is Public',
+            'created_at': 'Timestamp'
+        };
+        const keys = Object.keys(headerMap) as (keyof typeof headerMap)[];
+        const headers = Object.values(headerMap);
+
         const rows = [
             headers.join(','),
             ...audits.map(a =>
-                headers.map(h => {
-                    const val = a[h] ?? '';
+                keys.map(k => {
+                    let val = a[k] ?? '';
+                    if (k === 'is_public') val = !!val ? 'Yes' : 'No';
+
                     // Escape commas and quotes
                     const str = String(val).replace(/"/g, '""');
                     return str.includes(',') || str.includes('"') || str.includes('\n')
@@ -80,4 +110,12 @@ export async function GET(request: Request) {
 
 function today(): string {
     return new Date().toISOString().split('T')[0];
+}
+
+function tryParse(json: string) {
+    try {
+        return JSON.parse(json);
+    } catch {
+        return json;
+    }
 }

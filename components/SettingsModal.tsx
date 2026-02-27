@@ -14,6 +14,10 @@ import {
     Loader2,
     FileJson,
     FileText,
+    BookOpen,
+    HelpCircle,
+    Zap,
+    Keyboard,
 } from 'lucide-react';
 import { useTranslation } from './LanguageProvider';
 
@@ -22,7 +26,7 @@ interface SettingsModalProps {
     onClose: () => void;
 }
 
-type Tab = 'data' | 'about';
+type Tab = 'data' | 'guide' | 'about';
 type ExportStatus = 'idle' | 'loading' | 'success' | 'error';
 type ClearStatus = 'idle' | 'confirm' | 'loading' | 'success' | 'error';
 
@@ -41,7 +45,13 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         if (isOpen) {
             setExportStatus('idle');
             setClearStatus('idle');
-            setActiveTab('data');
+            // Check if there is a hash in URL to decide default tab
+            if (window.location.hash === '#guide') {
+                setActiveTab('guide');
+                window.history.replaceState(null, '', window.location.pathname);
+            } else {
+                setActiveTab('data');
+            }
         }
     }, [isOpen]);
 
@@ -130,6 +140,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         onClick={() => setActiveTab('data')}
                     />
                     <TabButton
+                        active={activeTab === 'guide'}
+                        icon={<BookOpen className="w-3.5 h-3.5" />}
+                        label={t.settings.tabs.guide}
+                        onClick={() => setActiveTab('guide')}
+                    />
+                    <TabButton
                         active={activeTab === 'about'}
                         icon={<Info className="w-3.5 h-3.5" />}
                         label={t.settings.tabs.about}
@@ -151,6 +167,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                             onCancelClear={() => setClearStatus('idle')}
                         />
                     )}
+                    {activeTab === 'guide' && <GuideTab t={t} />}
                     {activeTab === 'about' && <AboutTab t={t} />}
                 </div>
             </div>
@@ -175,8 +192,8 @@ function TabButton({
         <button
             onClick={onClick}
             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors -mb-px ${active
-                    ? 'border-accent text-accent'
-                    : 'border-transparent text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]'
+                ? 'border-accent text-accent'
+                : 'border-transparent text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]'
                 }`}
         >
             {icon}
@@ -297,10 +314,10 @@ function DataTab({
                         onClick={onClearChat}
                         disabled={clearStatus === 'loading'}
                         className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${clearStatus === 'success'
-                                ? 'bg-green-500/10 text-green-600 border border-green-500/20'
-                                : clearStatus === 'error'
-                                    ? 'bg-red-500/10 text-red-500 border border-red-500/20'
-                                    : 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20'
+                            ? 'bg-green-500/10 text-green-600 border border-green-500/20'
+                            : clearStatus === 'error'
+                                ? 'bg-red-500/10 text-red-500 border border-red-500/20'
+                                : 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20'
                             } disabled:opacity-60 disabled:cursor-not-allowed`}
                     >
                         {clearStatus === 'loading' && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -324,8 +341,8 @@ function FormatButton({
         <button
             onClick={onClick}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${active
-                    ? 'bg-accent/10 text-accent border-accent/30'
-                    : 'border-[var(--color-line)] text-[var(--color-ink-soft)] hover:border-accent/30 hover:text-accent'
+                ? 'bg-accent/10 text-accent border-accent/30'
+                : 'border-[var(--color-line)] text-[var(--color-ink-soft)] hover:border-accent/30 hover:text-accent'
                 }`}
         >
             {icon}
@@ -381,6 +398,98 @@ function AboutTab({ t }: { t: any }) {
             <p className="text-center text-xs text-[var(--color-ink-soft)]/50">
                 {t.settings.about.copyright}
             </p>
+        </div>
+    );
+}
+
+function GuideTab({ t }: { t: any }) {
+    return (
+        <div className="space-y-6">
+            {/* Quick Start */}
+            <section className="space-y-3">
+                <SectionTitle
+                    icon={<Zap className="w-3.5 h-3.5 text-amber-500" />}
+                    label={t.settings.guide.quickStartTitle}
+                />
+                <div className="space-y-3">
+                    {[1, 2, 3, 4].map((step) => (
+                        <div key={step} className="flex gap-4 p-3 bg-[var(--color-background)] border border-[var(--color-line)] rounded-xl">
+                            <div className="w-6 h-6 rounded-full bg-accent/10 text-accent flex items-center justify-center text-xs font-bold shrink-0">
+                                {step}
+                            </div>
+                            <div className="space-y-1">
+                                <div className="text-sm font-semibold text-[var(--color-ink)]">
+                                    {(t.settings.guide as any)[`step${step}Title`]}
+                                </div>
+                                <div className="text-xs text-[var(--color-ink-soft)] leading-relaxed">
+                                    {(t.settings.guide as any)[`step${step}Desc`]}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* Key Features */}
+            <section className="space-y-3">
+                <SectionTitle
+                    icon={<Shield className="w-3.5 h-3.5" />}
+                    label={t.settings.guide.featuresTitle}
+                />
+                <div className="grid grid-cols-2 gap-3">
+                    {[1, 2, 3, 4].map((feat) => (
+                        <div key={feat} className="p-3 bg-[var(--color-background)] border border-[var(--color-line)] rounded-xl space-y-1.5">
+                            <div className="text-[13px] font-semibold text-[var(--color-ink)]">
+                                {(t.settings.guide as any)[`feat${feat}Title`]}
+                            </div>
+                            <div className="text-[11px] text-[var(--color-ink-soft)] leading-normal">
+                                {(t.settings.guide as any)[`feat${feat}Desc`]}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* Keyboard Shortcuts */}
+            <section className="space-y-3">
+                <SectionTitle
+                    icon={<Keyboard className="w-3.5 h-3.5" />}
+                    label={t.settings.guide.shortcutsTitle}
+                />
+                <div className="bg-[var(--color-background)] border border-[var(--color-line)] rounded-xl divide-y divide-[var(--color-line)]">
+                    {[1, 2, 3].map((s) => (
+                        <div key={s} className="flex items-center justify-between p-3">
+                            <span className="text-xs text-[var(--color-ink-soft)]">
+                                {(t.settings.guide as any)[`shortcut${s}Action`]}
+                            </span>
+                            <kbd className="px-1.5 py-0.5 bg-[var(--color-line)] border border-[var(--color-line)] rounded text-[10px] font-mono text-[var(--color-ink)] shadow-sm">
+                                {(t.settings.guide as any)[`shortcut${s}Keys`]}
+                            </kbd>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* FAQ */}
+            <section className="space-y-3 pb-2">
+                <SectionTitle
+                    icon={<HelpCircle className="w-3.5 h-3.5" />}
+                    label={t.settings.guide.faqTitle}
+                />
+                <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="space-y-1.5">
+                            <div className="text-xs font-semibold text-[var(--color-ink)] flex items-start gap-2">
+                                <span className="text-accent">Q:</span>
+                                {(t.settings.guide as any)[`faq${i}Q`]}
+                            </div>
+                            <div className="text-xs text-[var(--color-ink-soft)] leading-relaxed pl-5">
+                                {(t.settings.guide as any)[`faq${i}A`]}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
         </div>
     );
 }
