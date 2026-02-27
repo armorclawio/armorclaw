@@ -81,6 +81,37 @@ export const translations = {
             publicSkills: "Public Skills",
             viewDetails: "View Report",
             score: "Score",
+        },
+        settings: {
+            tabs: {
+                data: "Data",
+                about: "About",
+            },
+            data: {
+                exportTitle: "Export Audit Logs",
+                exportDesc: "Download all your audit records as a file for backup or external analysis.",
+                exportBtn: "Export Audit Logs",
+                exporting: "Exporting...",
+                exportSuccess: "Export Successful!",
+                exportError: "Export Failed",
+                clearTitle: "Clear Chat History",
+                clearDesc: "Remove the current conversation from the chat window. Audit records in the sidebar are not affected.",
+                clearBtn: "Clear Chat History",
+                clearing: "Clearing...",
+                clearSuccess: "Chat Cleared!",
+                clearError: "Clear Failed",
+                clearConfirm: "This will clear all messages in the current chat window. This action cannot be undone.",
+                clearConfirmBtn: "Yes, Clear",
+            },
+            about: {
+                appVersion: "App Version",
+                analyzerVersion: "Analyzer",
+                linksTitle: "Links",
+                website: "Official Website",
+                docs: "Documentation",
+                github: "GitHub",
+                copyright: "© 2025 ArmorClaw.io · All rights reserved",
+            },
         }
     },
     zh: {
@@ -165,6 +196,37 @@ export const translations = {
             publicSkills: "公开技能",
             viewDetails: "查看报告",
             score: "评分",
+        },
+        settings: {
+            tabs: {
+                data: "数据",
+                about: "关于",
+            },
+            data: {
+                exportTitle: "导出审计日志",
+                exportDesc: "将所有审计记录下载为文件，用于备份或外部分析。",
+                exportBtn: "导出审计日志",
+                exporting: "正在导出...",
+                exportSuccess: "导出成功！",
+                exportError: "导出失败",
+                clearTitle: "清除聊天记录",
+                clearDesc: "清空当前聊天窗口中的所有消息，侧边栏中的审计记录不受影响。",
+                clearBtn: "清除聊天记录",
+                clearing: "正在清除...",
+                clearSuccess: "已清除！",
+                clearError: "清除失败",
+                clearConfirm: "此操作将清空当前聊天窗口中的所有消息，且无法撤销。",
+                clearConfirmBtn: "确认清除",
+            },
+            about: {
+                appVersion: "应用版本",
+                analyzerVersion: "分析器",
+                linksTitle: "链接",
+                website: "官方网站",
+                docs: "使用文档",
+                github: "GitHub",
+                copyright: "© 2025 ArmorClaw.io · 保留所有权利",
+            },
         }
     }
 };

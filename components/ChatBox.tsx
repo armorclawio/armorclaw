@@ -38,9 +38,9 @@ export function ChatBox({ className = '', selectedFile, onFileSelect, onAnalysis
         setCurrentChatId(paramChatId);
     }, [paramChatId]);
 
-    // Listen for 'new-audit' event
+    // Listen for 'new-audit' and 'clear-chat-history' events
     useEffect(() => {
-        const handleNewAudit = () => {
+        const resetChat = () => {
             setMessages([]);
             setInput('');
             setCurrentChatId(null);
@@ -50,8 +50,12 @@ export function ChatBox({ className = '', selectedFile, onFileSelect, onAnalysis
             window.history.pushState({}, '', url.toString());
         };
 
-        window.addEventListener('new-audit', handleNewAudit);
-        return () => window.removeEventListener('new-audit', handleNewAudit);
+        window.addEventListener('new-audit', resetChat);
+        window.addEventListener('clear-chat-history', resetChat);
+        return () => {
+            window.removeEventListener('new-audit', resetChat);
+            window.removeEventListener('clear-chat-history', resetChat);
+        };
     }, []);
 
     const LOCAL_CHATS_KEY = 'armorclaw_chats';

@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from "react";
 import { Shield, History, Settings, ShoppingBag, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuditHistory } from "./AuditHistory";
+import { SettingsModal } from "./SettingsModal";
 import { SessionUser } from "@/types";
 import { useTranslation } from "./LanguageProvider";
 import { useSidebar } from "./SidebarProvider";
@@ -16,6 +18,7 @@ export function Sidebar({ user }: SidebarProps) {
     const { t } = useTranslation();
     const { isOpen, setIsOpen } = useSidebar();
     const router = useRouter();
+    const [settingsOpen, setSettingsOpen] = useState(false);
 
     const handleNewAudit = () => {
         window.dispatchEvent(new Event('new-audit'));
@@ -66,12 +69,17 @@ export function Sidebar({ user }: SidebarProps) {
                 </nav>
 
                 <div className="p-4 border-t border-line space-y-2 shrink-0">
-                    <div className="sidebar-item p-3 rounded-xl cursor-pointer flex items-center gap-3 text-ink-soft hover:text-ink transition-colors">
+                    <button
+                        onClick={() => setSettingsOpen(true)}
+                        className="w-full sidebar-item p-3 rounded-xl cursor-pointer flex items-center gap-3 text-ink-soft hover:text-ink transition-colors"
+                    >
                         <Settings className="w-4 h-4" />
                         <span className="text-sm font-medium">{t.common.settings}</span>
-                    </div>
+                    </button>
                 </div>
             </aside>
+
+            <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
         </>
     );
 }
