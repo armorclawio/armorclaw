@@ -251,13 +251,19 @@ ${filePreview}
             };
         }
 
-        // 确保包含元数据
+        // 确保包含元数据，并强制使用服务器当前时间（AI 不知道真实时间）
         if (!analysisResult.metadata) {
             analysisResult.metadata = {
                 analyzed_at: new Date().toISOString(),
                 analyzer_version: '2.0.0-ai-architect',
                 file_name: name,
             };
+        } else {
+            // 强制覆盖 AI 返回的时间（AI 的时间不可信）
+            analysisResult.metadata.analyzed_at = new Date().toISOString();
+            if (!analysisResult.metadata.file_name) {
+                analysisResult.metadata.file_name = name;
+            }
         }
 
         return analysisResult;

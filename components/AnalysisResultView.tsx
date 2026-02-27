@@ -391,7 +391,7 @@ export function AnalysisResultView({ auditId, onClose }: AnalysisResultViewProps
             <div className="flex items-center justify-between text-xs text-ink-soft/60 pt-4 border-t border-line">
                 <div className="flex items-center gap-2">
                     <Clock className="w-3.5 h-3.5" />
-                    <span>{t.report.analysisTime}: {new Date(result.metadata.analyzed_at).toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US')}</span>
+                    <span>{t.report.analysisTime}: {new Date(result.metadata.analyzed_at).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
                 <span>{t.report.analyzerVersion}: {result.metadata.analyzer_version}</span>
             </div>

@@ -141,6 +141,11 @@ export async function GET(
                 // 附加公开状态
                 result.is_public = isPublicReport;
                 result.is_owner = isOwner;
+                // 用数据库中真实的记录时间覆盖 AI 填写的分析时间
+                // AI 不知道当前时间，会填写训练集中的假时间（如 2023-04-01）
+                if (result.metadata) {
+                    result.metadata.analyzed_at = audit.created_at;
+                }
                 return Response.json(result);
             } catch (e) {
                 // 如果解析失败，生成新的结果
@@ -324,7 +329,10 @@ export async function POST(
             result.recommendations.unshift('⚠️ 未配置 AI API Key，使用模拟分析结果');
         }
 
-        // 3. 保存结果到数据库
+        // 3. 保存结果到数据库（先确保时间正确，AI 不知道真实时间）
+        if (result.metadata) {
+            result.metadata.analyzed_at = new Date().toISOString();
+        }
         await db.prepare(`
       UPDATE audits
       SET ebpf_log_json = ?, status = ?, score = ?
