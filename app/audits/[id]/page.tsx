@@ -1,14 +1,15 @@
 'use client';
 
 import { use } from 'react';
+import { useRouter } from 'next/navigation';
 import { AnalysisResultView } from "@/components/AnalysisResultView";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, ArrowLeft } from "lucide-react";
 import { useTranslation } from "@/components/LanguageProvider";
-import Link from 'next/link';
 
 export default function AuditPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const { t } = useTranslation();
+    const router = useRouter();
 
     // Set page title
     if (typeof document !== 'undefined') {
@@ -23,12 +24,13 @@ export default function AuditPage({ params }: { params: Promise<{ id: string }> 
 
             <div className="max-w-4xl w-full h-full flex flex-col z-10 relative">
                 <div className="mb-8 flex items-center justify-between">
-                    <Link
-                        href="/"
+                    <button
+                        onClick={() => router.back()}
                         className="text-sm text-ink-soft hover:text-ink transition-colors flex items-center gap-2"
                     >
-                        ← {t.common.backToHome || 'Back to Home'}
-                    </Link>
+                        <ArrowLeft className="w-4 h-4" />
+                        {t.common.backToHome}
+                    </button>
 
                     <div className="flex items-center gap-4 text-[10px] font-semibold text-ink-soft/30 uppercase tracking-[0.2em]">
                         <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> {t.common.staticAnalysis}</span>
@@ -36,7 +38,7 @@ export default function AuditPage({ params }: { params: Promise<{ id: string }> 
                     </div>
                 </div>
 
-                <div className="bg-surface border border-line rounded-3xl p-6 md:p-8 shadow-2xl overflow-y-auto">
+                <div className="bg-surface border border-line rounded-3xl p-6 md:p-8 shadow-2xl overflow-y-auto flex-1">
                     <AnalysisResultView auditId={id} />
                 </div>
             </div>

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, ShoppingBag, Loader2, Star, Shield, ExternalLink, Calendar } from 'lucide-react';
 import { useTranslation } from '@/components/LanguageProvider';
-import { useSidebar } from '@/components/SidebarProvider';
 
 interface Skill {
     id: string;
@@ -16,7 +16,7 @@ interface Skill {
 
 export default function SkillMarket() {
     const { t, language } = useTranslation();
-    const { setActiveAuditId } = useSidebar();
+    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
     const [skills, setSkills] = useState<Skill[]>([]);
     const [loading, setLoading] = useState(true);
@@ -131,7 +131,7 @@ export default function SkillMarket() {
                                     </div>
 
                                     <button
-                                        onClick={() => setActiveAuditId(skill.id)}
+                                        onClick={() => router.push(`/audits/${skill.id}`)}
                                         className="flex items-center gap-1.5 text-xs font-bold text-accent hover:text-accent-hover transition-colors pr-1"
                                     >
                                         {t.market.viewDetails}
